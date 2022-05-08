@@ -1,0 +1,26 @@
+{
+  "name": "logging-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "docker": "nodemon ./src/app.js -L"
+  },
+  "author": "Denis Saenko",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "chain-validator-js": "^1.1.2",
+    "dotenv": "^16.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.4",
+    "koa-body": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.6.2"
+  }
+}
