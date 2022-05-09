@@ -53,6 +53,10 @@ class UserDAO {
   async deleteUser(id) {
     return await db("users").where({ id }).delete();
   }
+
+  async isExist(id) {
+    return (await db("users").count("*").where({ id }))[0].count > 0;
+  }
 }
 
 module.exports = new UserDAO();

@@ -1,6 +1,7 @@
 const UserDAO = require("../dao/user");
 const RefreshTokenDAO = require("../dao/refresh-token");
 const BlacklistedAccessTokenDAO = require("../dao/blacklisted-access-token");
+const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
 const PayloadedError = require("../payloaded-error");
 const jwt = require("jsonwebtoken");
 const { validate, build } = require("chain-validator-js");
@@ -11,7 +12,7 @@ function getTokensPair(user) {
     throw new PayloadedError("User is undefined", { user });
 
   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_TTL,
+    expiresIn: process.env.ACCESS_TOKEN_TTL * 1000,
     issuer: `${process.env.DOMAIN}`
   });
 
@@ -111,6 +112,14 @@ class AuthService {
     }
 
     return await BlacklistedAccessTokenDAO.isTokenBlacklisted(accessToken);
+  }
+
+  async blacklistUserId(userId) {
+    return await BlacklistedUserIdDAO.blacklistUserId(userId);
+  }
+
+  async isUserIdBlacklisted(userId) {
+    return await BlacklistedUserIdDAO.isUserIdBlacklisted(userId);
   }
 }
 

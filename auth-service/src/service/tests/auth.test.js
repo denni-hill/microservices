@@ -1,4 +1,3 @@
-const getUserHash = require("../get-user-hash");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const dotenv = require("dotenv");
@@ -7,7 +6,6 @@ const path = require("path");
 dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
-process.env.DATABASE_HOST = "localhost";
 process.env.REDIS_HOST = "localhost";
 
 const UserService = require("../user");
@@ -29,7 +27,7 @@ let userAccessToken;
 let userRefreshToken;
 
 describe("Test auth service", () => {
-  test("connects to redis cache server", async () => {
+  beforeAll(async () => {
     await redisClient.connect();
   });
 
@@ -100,7 +98,7 @@ describe("Test auth service", () => {
     UserService.deleteUser(user.id);
   });
 
-  test("close redis cache server connection", async () => {
+  afterAll(async () => {
     redisClient.disconnect();
   });
 });

@@ -1,5 +1,6 @@
 const { build, validate } = require("chain-validator-js");
 const UserDAO = require("../dao/user");
+const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
 const PayloadedError = require("../payloaded-error");
 const getUserHash = require("./get-user-hash");
 
@@ -116,7 +117,13 @@ class UserService {
   }
 
   async deleteUser(userId) {
-    return await UserDAO.deleteUser(userId);
+    const res = await UserDAO.deleteUser(userId);
+    if (res > 0) await BlacklistedUserIdDAO.blacklistUserId(userId);
+    return res;
+  }
+
+  async isExist(userId) {
+    return await UserDAO.isExist(userId);
   }
 }
 

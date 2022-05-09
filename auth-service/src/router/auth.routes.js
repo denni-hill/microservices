@@ -9,6 +9,8 @@ router.post("/refresh", text(), AuthController.refresh);
 
 router.post("/logout", auth, text(), AuthController.logout);
 
-router.post("/check", text(), AuthController.checkAccessToken);
+router.post("/check", auth, (_req, res) => {
+  res.status(200).send();
+});
 
 module.exports = router;

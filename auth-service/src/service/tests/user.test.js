@@ -7,8 +7,9 @@ const path = require("path");
 dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
-process.env.DATABASE_HOST = "localhost";
+process.env.REDIS_HOST = "localhost";
 
+const redisClient = require("../../redis");
 const UserService = require("../user");
 
 const userData = {
@@ -77,6 +78,9 @@ const expectUserData = (
 };
 
 describe("Test user service", () => {
+  beforeAll(async () => {
+    await redisClient.connect();
+  });
   test("creates user in database", async () => {
     user = await UserService.createUser(userData);
     expect(user).toEqual(relevantObjectContaining);
@@ -171,5 +175,9 @@ describe("Test user service", () => {
 
   test("deletes nonexistent user in database", async () => {
     expect(await UserService.deleteUser(3248723)).toBe(0);
+  });
+
+  afterAll(async () => {
+    await redisClient.disconnect();
   });
 });

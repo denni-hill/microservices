@@ -1,9 +1,13 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const path = require("path");
-dotenv.config();
-dotenv.config({ path: path.join(process.cwd(), "..", "services.env", ".env") });
 
+if (process.env.NODE_ENV === "docker") {
+  dotenv.config();
+  dotenv.config({
+    path: path.join(process.cwd(), "..", "services.env", ".env")
+  });
+}
 const router = require("./router");
 
 const redisClient = require("./redis");
@@ -22,4 +26,8 @@ app.use((req, res, next) => {
 
 app.use(router);
 
-app.listen(80, () => console.log("Authorization service started"));
+const server = app.listen(process.env.PORT, () =>
+  console.log("Authorization service started")
+);
+
+module.exports = server;
