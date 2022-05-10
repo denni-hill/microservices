@@ -6,19 +6,28 @@ const PayloadedError = require("../payloaded-error");
 const jwt = require("jsonwebtoken");
 const { validate, build } = require("chain-validator-js");
 const getUserHash = require("./get-user-hash");
+const { v4: uuid } = require("uuid");
 
 function getTokensPair(user) {
   if (user === undefined)
     throw new PayloadedError("User is undefined", { user });
 
-  const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_TTL * 1000,
-    issuer: `${process.env.DOMAIN}`
-  });
+  const accessToken = jwt.sign(
+    { ...user, token_uuid: uuid() },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_TTL * 1000,
+      issuer: `${process.env.DOMAIN}`
+    }
+  );
 
-  const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
-    issuer: `${process.env.DOMAIN}`
-  });
+  const refreshToken = jwt.sign(
+    { ...user, token_uuid: uuid() },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      issuer: `${process.env.DOMAIN}`
+    }
+  );
 
   return { accessToken, refreshToken };
 }
@@ -48,17 +57,12 @@ class AuthService {
 
   async refresh(accessToken, refreshToken) {
     let token;
+    let accessTokenIsExpired = false;
     try {
       token = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-
-      await BlacklistedAccessTokenDAO.blackistToken(
-        accessToken,
-        token.iat,
-        token.exp
-      );
     } catch (e) {
-      if (e.message !== "jwt expired")
-        throw new PayloadedError("Access token is invalid", { accessToken });
+      if (e.message === "jwt expired") accessTokenIsExpired = true;
+      else throw new PayloadedError("Access token is invalid", { accessToken });
     }
 
     try {
@@ -73,6 +77,12 @@ class AuthService {
       throw new PayloadedError("Refresh token is not found", { refreshToken });
 
     await RefreshTokenDAO.deleteRefreshToken(refreshToken);
+    if (!accessTokenIsExpired)
+      await BlacklistedAccessTokenDAO.blackistToken(
+        accessToken,
+        token.iat,
+        token.exp
+      );
 
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
       getTokensPair(user);
@@ -87,21 +97,23 @@ class AuthService {
 
     try {
       token = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-      await BlacklistedAccessTokenDAO.blackistToken(
-        accessToken,
-        token.iat,
-        token.exp
-      );
     } catch {
       throw new PayloadedError("Access token is invalid", { accessToken });
     }
 
+    await BlacklistedAccessTokenDAO.blackistToken(
+      accessToken,
+      token.iat,
+      token.exp
+    );
+
     try {
       jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-      await RefreshTokenDAO.deleteRefreshToken(refreshToken);
     } catch {
       throw new PayloadedError("Refresh token is invalid", { refreshToken });
     }
+
+    await RefreshTokenDAO.deleteRefreshToken(refreshToken);
   }
 
   async isAccessTokenBlacklisted(accessToken) {

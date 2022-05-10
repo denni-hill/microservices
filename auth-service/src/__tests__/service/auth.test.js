@@ -8,8 +8,8 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
 process.env.REDIS_HOST = "localhost";
 
-const UserService = require("../user");
-const AuthService = require("../auth");
+const UserService = require("../../service/user");
+const AuthService = require("../../service/auth");
 const redisClient = require("../../redis");
 
 const userData = {
@@ -26,11 +26,11 @@ let user;
 let userAccessToken;
 let userRefreshToken;
 
-describe("Test auth service", () => {
-  beforeAll(async () => {
-    await redisClient.connect();
-  });
+beforeAll(async () => {
+  await redisClient.connect();
+});
 
+describe("Test auth service", () => {
   test("creates user for testing", async () => {
     user = await UserService.createUser(userData);
   });
@@ -52,7 +52,6 @@ describe("Test auth service", () => {
   });
 
   test("attempt to use refresh token", async () => {
-    await new Promise((r) => setTimeout(r, 2000));
     const { accessToken, refreshToken } = await AuthService.refresh(
       userAccessToken,
       userRefreshToken
@@ -95,10 +94,10 @@ describe("Test auth service", () => {
   });
 
   test("deletes test user", async () => {
-    UserService.deleteUser(user.id);
+    await UserService.deleteUser(user.id);
   });
+});
 
-  afterAll(async () => {
-    redisClient.disconnect();
-  });
+afterAll(async () => {
+  await redisClient.disconnect();
 });

@@ -1,64 +1,68 @@
-const PayloadedError = require("../payloaded-error");
 const AuthService = require("../service/auth");
 
 class AuthController {
-  async login(req, res) {
+  async login(req, res, next) {
     try {
       const { accessToken, refreshToken } = await AuthService.login(req.body);
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
       if (e.message === "Validation failed") res.status(400).json(e.payload);
-      else if (e.message === "User is not found") res.status(401).send();
+      else if (e.message === "User is not found")
+        res.status(401).send(e.message);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async refresh(req, res) {
+  async refresh(req, res, next) {
     const authHeader = req.headers["authorization"];
-    if (typeof authHeader !== "string" && !authHeader.startsWith("Bearer "))
-      res.status(401).send();
-    const authToken = authHeader.replace("Bearer ", "");
+    if (typeof authHeader !== "string" && !authHeader.startsWith("Bearer ")) {
+      return res.status(401).send("Authorization header is not provided");
+    }
+    const oldAccessToken = authHeader.replace("Bearer ", "");
 
     try {
       const { accessToken, refreshToken } = await AuthService.refresh(
-        authToken,
+        oldAccessToken,
         req.body
       );
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
-      if (e.message === "Access token is invalid") res.status(401).send();
-      else if (e.message === "Refresh token is invalid") res.status(401).send();
-      else if (e.message === "Refresh token is not found")
-        res.status(401).send();
+      if (
+        [
+          "Access token is invalid",
+          "Refresh token is invalid",
+          "Refresh token is not found"
+        ].includes(e.message)
+      )
+        res.status(401).send(e.message);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async logout(req, res) {
-    const authHeader = req.headers["authorization"];
-    if (typeof authHeader !== "string" && !authHeader.startsWith("Bearer ")) {
-      res.status(401).send();
-      throw new PayloadedError("Auth header is not provided");
-    }
-    const authToken = authHeader.replace("Bearer ", "");
+  async logout(req, res, next) {
+    if (req.user === undefined) return res.status(401).send("Unauthorized");
 
     try {
-      await AuthService.logout(authToken, req.body);
+      await AuthService.logout(req.user.accessToken, req.body);
       return res.status(200).send();
     } catch (e) {
-      if (e.message === "Access token is invalid") res.status(401).send();
-      else if (e.message === "Refresh token is invalid") res.status(401).send();
+      if (
+        ["Access token is invalid", "Refresh token is invalid"].includes(
+          e.message
+        )
+      )
+        res.status(401).send(e.message);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async checkAccessToken(req, res) {
+  async checkAccessToken(req, res, next) {
     try {
       if (await AuthService.isAccessTokenBlacklisted(req.body))
         res.status(401).json(false);
@@ -67,7 +71,7 @@ class AuthController {
       if (e.message === "Access token is invalid") res.status(401).json(false);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 }

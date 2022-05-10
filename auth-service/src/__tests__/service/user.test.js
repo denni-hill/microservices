@@ -1,4 +1,4 @@
-const getUserHash = require("../get-user-hash");
+const getUserHash = require("../../service/get-user-hash");
 const crypto = require("crypto");
 
 const dotenv = require("dotenv");
@@ -10,7 +10,7 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 process.env.REDIS_HOST = "localhost";
 
 const redisClient = require("../../redis");
-const UserService = require("../user");
+const UserService = require("../../service/user");
 
 const userData = {
   email: "test@test.com",
@@ -77,10 +77,11 @@ const expectUserData = (
   }
 };
 
+beforeAll(async () => {
+  await redisClient.connect();
+});
+
 describe("Test user service", () => {
-  beforeAll(async () => {
-    await redisClient.connect();
-  });
   test("creates user in database", async () => {
     user = await UserService.createUser(userData);
     expect(user).toEqual(relevantObjectContaining);
@@ -176,8 +177,8 @@ describe("Test user service", () => {
   test("deletes nonexistent user in database", async () => {
     expect(await UserService.deleteUser(3248723)).toBe(0);
   });
+});
 
-  afterAll(async () => {
-    await redisClient.disconnect();
-  });
+afterAll(async () => {
+  await redisClient.disconnect();
 });

@@ -1,33 +1,34 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const path = require("path");
-
-if (process.env.NODE_ENV === "docker") {
-  dotenv.config();
-  dotenv.config({
-    path: path.join(process.cwd(), "..", "services.env", ".env")
-  });
-}
-const router = require("./router");
-
 const redisClient = require("./redis");
+const router = require("./router");
+const express = require("express");
 
+/**
+ * @type { import("express").Application & {async start(): Promise<import("http").Server> async stop(): Promise<void>}}
+ */
 const app = express();
 
-redisClient.connect();
-
-app.use((req, res, next) => {
-  try {
-    next();
-  } catch (e) {
-    console.log(e);
-  }
+app.use(async (err, _req, _res, next) => {
+  console.log(err);
 });
 
 app.use(router);
 
-const server = app.listen(process.env.PORT, () =>
-  console.log("Authorization service started")
-);
+app.start = async () => {
+  require("./database/knex");
+  await redisClient.connect();
+  app.server = await new Promise((res) => {
+    const server = app.listen(process.env.PORT, () => {
+      console.log(`HTTP server started on port ${process.env.PORT}`);
+      res(server);
+    });
+  });
+};
 
-module.exports = server;
+app.stop = async () => {
+  await redisClient.disconnect();
+  await new Promise((res) => {
+    app.server.close(res);
+  });
+};
+
+module.exports = app;

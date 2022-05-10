@@ -9,12 +9,14 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 process.env.REDIS_HOST = "localhost";
 process.env.PORT = 8085;
 
-const server = require("../../app");
+const app = require("../../app");
 const UserService = require("../../service/user");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const redisClient = require("../../redis");
 
+/**
+ * @type { import("axios").Axios }
+ */
 const axios = Axios.create({
   baseURL: "http://localhost:8085",
   headers: {
@@ -31,52 +33,51 @@ let userData = {
   password_hash: crypto.createHash("sha256").update("bla-bla-bla").digest("hex")
 };
 let user;
+const tokens = [];
 let accessToken;
 let refreshToken;
 
-describe("testing auth routes", () => {
-  beforeAll(async () => {
-    await new Promise((resolve) => {
-      server.on("listening", resolve);
-    });
-    await new Promise((resolve) => {
-      redisClient.on("connect", resolve);
-    });
-    user = await UserService.createUser(userData);
-  });
+beforeAll(async () => {
+  await app.start();
+  user = await UserService.createUser(userData);
+});
 
+describe("testing auth routes", () => {
   test("attempting to login", async () => {
     const response = await axios.post("/login", {
       email: userData.email,
       password_hash: userData.password_hash
     });
     expect(response.status).toBe(200);
-    const { accessToken: access, refreshToken: refresh } = response.data;
+    const { accessToken, refreshToken } = response.data;
 
-    accessToken = access;
-    refreshToken = refresh;
+    tokens.push({ accessToken, refreshToken });
 
     jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
     axios.defaults.headers.common.authorization = `Bearer ${accessToken}`;
   });
+
   test("attempting to check access token is valid", async () => {
     const response = await axios.post("/check");
     expect(response.status).toBe(200);
   });
-  test("attempting to refresh tokens", async () => {
-    await new Promise((r) => setTimeout(r, 2000));
-    const response = await axios.post("/refresh", refreshToken, {
-      headers: {
-        "content-type": "text/plain"
-      }
-    });
-    expect(response.status).toBe(200);
-    const { accessToken: access, refreshToken: refresh } = response.data;
 
-    accessToken = access;
-    refreshToken = refresh;
+  test("attempting to refresh tokens", async () => {
+    const response = await axios.post(
+      "/refresh",
+      tokens[tokens.length - 1].refreshToken,
+      {
+        headers: {
+          "content-type": "text/plain"
+        }
+      }
+    );
+    expect(response.status).toBe(200);
+    const { accessToken, refreshToken } = response.data;
+
+    tokens.push({ accessToken, refreshToken });
 
     jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
@@ -84,25 +85,41 @@ describe("testing auth routes", () => {
     axios.defaults.headers.common.authorization = `Bearer ${accessToken}`;
   });
 
-  test("attempting to logout", async () => {
-    const response = await axios.post("/logout", refreshToken, {
-      headers: {
-        "content-type": "text/plain"
-      }
-    });
-    expect(response.status).toBe(200);
-  });
-  test("blacklisted token validation failed", async () => {
+  test("fails to refresh with used refresh token", async () => {
     try {
-      const response = await axios.post("/check");
+      await axios.post("/refresh", tokens[tokens.length - 2].refreshToken, {
+        headers: {
+          "content-type": "text/plain"
+        }
+      });
     } catch (e) {
       expect(e.response.status).toBe(401);
     }
   });
 
-  afterAll(async () => {
-    server.close();
-    await UserService.deleteUser(user.id);
-    await redisClient.disconnect();
+  test("attempting to logout", async () => {
+    const response = await axios
+      .post("/logout", tokens[tokens.length - 1].refreshToken, {
+        headers: {
+          "content-type": "text/plain"
+        }
+      })
+      .catch((e) => console.log(e.response.data));
+    expect(response.status).toBe(200);
   });
+  test("blacklisted token validation failed", async () => {
+    try {
+      await axios.post("/check");
+    } catch (e) {
+      expect(e.response.status).toBe(401);
+    }
+  });
+
+  test("deletes test user", async () => {
+    expect(await UserService.deleteUser(user.id)).toBe(1);
+  });
+});
+
+afterAll(async () => {
+  await app.stop();
 });

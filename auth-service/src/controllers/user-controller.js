@@ -1,7 +1,7 @@
 const UserService = require("../service/user");
 
 class UserController {
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       if (req.user === undefined || req.user.is_admin !== true)
         delete req.body.is_admin;
@@ -15,11 +15,11 @@ class UserController {
       if (e.message === "Validation failed") res.status(400).json(e.payload);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async get(req, res) {
+  async get(req, res, next) {
     try {
       const user = await UserService.get(req.params.userId);
       if (user === undefined) return res.status(404).send();
@@ -28,11 +28,11 @@ class UserController {
       if (e.message === "Validation failed") res.status(400).send(e.payload);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       if (req.user === undefined || req.user.is_admin !== true)
         delete req.body.is_admin;
@@ -47,11 +47,11 @@ class UserController {
         res.status(400).json(e.payload);
       else res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const affectedRowsNumber = await UserService.deleteUser(
         req.params.userId
@@ -61,7 +61,7 @@ class UserController {
     } catch (e) {
       res.status(500).send();
 
-      throw e;
+      next(e);
     }
   }
 }

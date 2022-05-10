@@ -1,5 +1,5 @@
 const AuthController = require("../controllers/auth-controller");
-const auth = require("../middlewares/auth.middleware");
+const auth = require("../middleware/auth.middleware");
 const router = require("express").Router();
 const { json, text } = require("body-parser");
 
