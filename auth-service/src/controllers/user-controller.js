@@ -10,7 +10,7 @@ class UserController {
     try {
       const user = await UserService.createUser(req.body);
       delete user.hash;
-      return res.status(200).json(user);
+      return res.status(201).json(user);
     } catch (e) {
       if (e.message === "Validation failed") res.status(400).json(e.payload);
       else res.status(500).send();

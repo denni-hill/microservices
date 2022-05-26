@@ -8,7 +8,7 @@ router.post(
   "/register",
   (req, res, next) => {
     if (process.env.REGISTRATION_ENABLED === "true") next();
-    else res.status(403).send();
+    else res.status(403).send("REGISTRATION IS DISABLED");
   },
   json(),
   UserController.create

@@ -3,7 +3,10 @@ const router = require("./router");
 const express = require("express");
 
 /**
- * @type { import("express").Application & {async start(): Promise<import("http").Server> async stop(): Promise<void>}}
+ * @type { import("express").Application & {
+ *  async start(): Promise<import("http").Server
+ *  async stop(): Promise<void>
+ * }}
  */
 const app = express();
 
