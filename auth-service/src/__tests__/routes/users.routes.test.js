@@ -58,8 +58,110 @@ describe("testing users routes", () => {
       else throw e;
     }
 
-    if (response !== undefined)
-      user = await UserService.updateUser(response.data.id, { is_admin: true });
+    user = response.data;
+  });
+
+  test("attempting to create user", async () => {
+    try {
+      let response = await axios.post("/users/create", anotherUserData);
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(401);
+      else throw e;
+    }
+  });
+
+  test("attempting to update user", async () => {
+    try {
+      let response = await axios.patch(`/users/${1}`, {
+        first_name: "Changed"
+      });
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(401);
+      else throw e;
+    }
+  });
+
+  test("attempting to delete user", async () => {
+    try {
+      let response = await axios.delete(`/users/${1}`);
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(401);
+      else throw e;
+    }
+  });
+
+  test("attempting to login", async () => {
+    const response = await axios.post("/login", {
+      email: userData.email,
+      password_hash: userData.password_hash
+    });
+    expect(response.status).toBe(200);
+    const { accessToken, refreshToken } = response.data;
+
+    tokens = { accessToken, refreshToken };
+
+    jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    axios.defaults.headers.common.authorization = `Bearer ${accessToken}`;
+  });
+
+  test("attempting to create user", async () => {
+    try {
+      let response = await axios.post("/users/create", anotherUserData);
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(403);
+      else throw e;
+    }
+  });
+
+  test("attempting to update user", async () => {
+    try {
+      let response = await axios.patch(`/users/${1}`, {
+        first_name: "Changed"
+      });
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(403);
+      else throw e;
+    }
+  });
+
+  test("attempting to delete user", async () => {
+    try {
+      let response = await axios.delete(`/users/${1}`);
+
+      throw new Error("Request succeed unexpectedly!");
+    } catch (e) {
+      if (e.response !== undefined) expect(e.response.status).toBe(403);
+      else throw e;
+    }
+  });
+
+  test("attempting to logout", async () => {
+    try {
+      await axios.post("/logout", tokens.refreshToken, {
+        headers: {
+          "content-type": "text/plain"
+        }
+      });
+    } catch (e) {
+      console.log(e.response.data);
+      throw e;
+    }
+  });
+
+  test("attempting to make test user admin", async () => {
+    user = await UserService.updateUser(user.id, { is_admin: true });
   });
 
   test("attempting to login", async () => {
