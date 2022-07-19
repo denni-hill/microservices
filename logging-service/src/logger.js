@@ -26,7 +26,7 @@ function getFilePath() {
 
 let filePath = getFilePath();
 
-const logger = new (class {
+class Logger {
   content = [];
 
   log(toLog) {
@@ -38,7 +38,8 @@ const logger = new (class {
 
   async persistLog(contentToPersist) {
     try {
-      if ((await fs.stat(filePath)).size >= 5 * 1024) filePath = getFilePath();
+      if ((await fs.stat(filePath)).size >= process.env.LOG_FILE_SIZE_KB * 1024)
+        filePath = getFilePath();
 
       stream.write(
         contentToPersist
@@ -64,6 +65,8 @@ const logger = new (class {
       }
     }
   }
-})();
+}
+
+const logger = new Logger();
 
 module.exports = logger;
