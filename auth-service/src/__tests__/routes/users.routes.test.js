@@ -10,7 +10,7 @@ process.env.REDIS_HOST = "localhost";
 process.env.PORT = 8085;
 
 const app = require("../../app");
-const UserService = require("../../service/user");
+const UserService = require("../../service/user.service");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 

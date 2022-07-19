@@ -133,6 +133,24 @@ class AuthService {
   async isUserIdBlacklisted(userId) {
     return await BlacklistedUserIdDAO.isUserIdBlacklisted(userId);
   }
+
+  async isAccessTokenValid(accessToken) {
+    let user;
+    try {
+      user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+    } catch {
+      throw new PayloadedError("Access token is invalid!", { accessToken });
+    }
+
+    let conditions = await Promise.all([
+      this.isAccessTokenBlacklisted(accessToken),
+      this.isUserIdBlacklisted(user.id)
+    ]);
+
+    if (conditions.some((cond) => cond)) return false;
+
+    return true;
+  }
 }
 
 module.exports = new AuthService();

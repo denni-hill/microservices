@@ -10,7 +10,7 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 process.env.REDIS_HOST = "localhost";
 
 const redisClient = require("../../redis");
-const UserService = require("../../service/user");
+const UserService = require("../../service/user.service");
 
 const userData = {
   email: "test@test.com",

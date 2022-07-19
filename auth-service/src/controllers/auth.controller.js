@@ -1,4 +1,5 @@
-const AuthService = require("../service/auth");
+const AuthService = require("../service/auth.service");
+const jwt = require("jsonwebtoken");
 
 class AuthController {
   async login(req, res, next) {
@@ -64,15 +65,14 @@ class AuthController {
 
   async checkAccessToken(req, res, next) {
     try {
-      if (await AuthService.isAccessTokenBlacklisted(req.body))
-        res.status(401).json(false);
-      else res.status(200).json(true);
+      if (!(await AuthService.isAccessTokenValid(req.body))) {
+        return res.status(401).send("Access token is invalid");
+      }
     } catch (e) {
-      if (e.message === "Access token is invalid") res.status(401).json(false);
-      else res.status(500).send();
-
-      next(e);
+      return next(e);
     }
+
+    res.status(200).send();
   }
 }
 

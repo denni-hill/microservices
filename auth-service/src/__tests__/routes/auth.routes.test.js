@@ -10,7 +10,7 @@ process.env.REDIS_HOST = "localhost";
 process.env.PORT = 8085;
 
 const app = require("../../app");
-const UserService = require("../../service/user");
+const UserService = require("../../service/user.service");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
@@ -60,7 +60,17 @@ describe("testing auth routes", () => {
   });
 
   test("attempting to check access token is valid", async () => {
-    const response = await axios.post("/check");
+    let response = await axios.post("/check");
+    expect(response.status).toBe(200);
+    response = await axios.post(
+      "/service-check",
+      tokens[tokens.length - 1].accessToken,
+      {
+        headers: {
+          "content-type": "text/plain"
+        }
+      }
+    );
     expect(response.status).toBe(200);
   });
 
@@ -110,6 +120,20 @@ describe("testing auth routes", () => {
   test("blacklisted token validation failed", async () => {
     try {
       await axios.post("/check");
+    } catch (e) {
+      expect(e.response.status).toBe(401);
+    }
+
+    try {
+      await axios.post(
+        "/service-check",
+        tokens[tokens.length - 1].accessToken,
+        {
+          headers: {
+            "content-type": "text/plain"
+          }
+        }
+      );
     } catch (e) {
       expect(e.response.status).toBe(401);
     }

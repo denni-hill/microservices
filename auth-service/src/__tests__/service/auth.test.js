@@ -8,8 +8,8 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
 process.env.REDIS_HOST = "localhost";
 
-const UserService = require("../../service/user");
-const AuthService = require("../../service/auth");
+const UserService = require("../../service/user.service");
+const AuthService = require("../../service/auth.service");
 const redisClient = require("../../redis");
 
 const userData = {
