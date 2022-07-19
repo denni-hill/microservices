@@ -8,7 +8,7 @@ exports.up = function (knex) {
     table.string("email").notNullable().unique();
     table.string("first_name").notNullable();
     table.string("last_name").notNullable();
-    table.boolean("is_admin").defaultTo(false);
+    table.boolean("is_admin").notNullable().defaultTo(false);
     table.string("hash").notNullable();
     table.timestamps(true, true);
   });
