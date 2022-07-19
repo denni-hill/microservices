@@ -14,6 +14,20 @@ services:
       - ./.env:/usr/src/services.env/.env:ro
     environment:
       - NODE_ENV=docker
+  counter-service:
+    image: node:16-alpine3.14
+    container_name: counter_service
+    depends_on:
+      - database
+      - redis
+    restart: always
+    working_dir: "/usr/src/app"
+    command: "npm run docker"
+    volumes:
+      - ./counter-service:/usr/src/app
+      - ./.env:/usr/src/services.env/.env:ro
+    environment:
+      - NODE_ENV=docker
   cv-service:
     image: node:16-alpine3.14
     container_name: cv_service
