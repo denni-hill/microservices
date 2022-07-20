@@ -1,4 +1,4 @@
-import { DeepPartial, FindManyOptions } from "typeorm";
+import { DeepPartial, FindManyOptions, FindOneOptions } from "typeorm";
 import { defaultDataSource } from "../database";
 
 export abstract class BaseDAO<T> {
@@ -11,6 +11,10 @@ export abstract class BaseDAO<T> {
     );
 
     return await defaultDataSource.manager.save(newEntity);
+  }
+
+  async findOne(options?: FindOneOptions<T>): Promise<T> {
+    return defaultDataSource.manager.findOne<T>(this.entityClass, options);
   }
 
   async find(options?: FindManyOptions<T>): Promise<T[]> {

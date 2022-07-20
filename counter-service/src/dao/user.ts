@@ -10,9 +10,10 @@ class UserDAO extends BaseDAO<User> {
     options: FindManyOptions<User>,
     data: DeepPartial<User>
   ): Promise<User[]> {
-    data = { ...data };
-    delete data.authUserId;
-    return await super.update(options, data);
+    const newData = { ...data };
+    delete newData.authUserId;
+    delete newData.id;
+    return await super.update(options, newData);
   }
 
   async isAuthUserIdRegistered(authUserId: number): Promise<boolean> {
