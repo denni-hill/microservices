@@ -16,10 +16,12 @@ router.post(
 
 router.post("/create", auth, isAdmin, json(), UserController.create);
 
-router.route("/:userId", auth, isAdmin, UserController.get);
+router.get("/:userId", auth, isAdmin, UserController.get);
 
 router.patch("/:userId", auth, isAdmin, json(), UserController.update);
 
 router.delete("/:userId", auth, isAdmin, UserController.delete);
+
+router.get("/is-exist/:userId", auth, isAdmin, UserController.isExist);
 
 module.exports = router;

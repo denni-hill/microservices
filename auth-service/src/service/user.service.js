@@ -3,6 +3,7 @@ const UserDAO = require("../dao/user");
 const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
 const PayloadedError = require("../payloaded-error");
 const getUserHash = require("./get-user-hash");
+const ValidationError = require("../errors/validation.error");
 
 class UserService {
   async createUser(userDto) {
@@ -100,8 +101,7 @@ class UserService {
         })
     );
 
-    if (validationResult.failed)
-      throw new PayloadedError("Validation failed", validationResult.errors);
+    if (validationResult.failed) throw new ValidationError(validationResult);
 
     const { validated } = validationResult;
 
