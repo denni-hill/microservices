@@ -11,6 +11,7 @@ process.env.REDIS_HOST = "localhost";
 
 const redisClient = require("../../redis");
 const UserService = require("../../service/user.service");
+const ValidationError = require("../../errors/validation.error");
 
 const userData = {
   email: "test@test.com",
@@ -92,7 +93,7 @@ describe("Test user service", () => {
     try {
       await UserService.createUser(userData);
     } catch (e) {
-      expect(e.message).toBe("Validation failed");
+      expect(e instanceof ValidationError).toBe(true);
     }
   });
 
@@ -112,7 +113,7 @@ describe("Test user service", () => {
     try {
       secondUser = await UserService.updateUser(secondUser.id, userData);
     } catch (e) {
-      expect(e.message).toBe("Validation failed");
+      expect(e instanceof ValidationError).toBe(true);
     }
   });
 
@@ -132,7 +133,7 @@ describe("Test user service", () => {
     try {
       await UserService.updateUser(user.id, newUserData[1]);
     } catch (e) {
-      expect(e.message).toBe("Validation failed");
+      expect(e instanceof ValidationError).toBe(true);
     }
   });
 
@@ -140,7 +141,7 @@ describe("Test user service", () => {
     try {
       await UserService.updateUser(user.id, newUserData[2]);
     } catch (e) {
-      expect(e.message).toBe("Validation failed");
+      expect(e instanceof ValidationError).toBe(true);
     }
   });
 
@@ -148,7 +149,7 @@ describe("Test user service", () => {
     try {
       await UserService.updateUser(user.id, newUserData[3]);
     } catch (e) {
-      expect(e.message).toBe("Validation failed");
+      expect(e instanceof ValidationError).toBe(true);
     }
   });
 

@@ -1,11 +1,11 @@
 const crypto = require("crypto");
-const PayloadedError = require("../payloaded-error");
+const InternalServerError = require("../errors/internal.error");
 
 function getUserHash(email, password) {
   if (typeof email !== "string")
-    throw new PayloadedError("Email must be type of string", { email });
+    throw new InternalServerError("Email must be type of string");
   if (typeof email !== "string")
-    throw new PayloadedError("Password must be type of string", { password });
+    throw new InternalServerError("Password must be type of string");
 
   const emailHash = crypto.createHash("sha256").update(email).digest("hex");
   const passwordHash = crypto

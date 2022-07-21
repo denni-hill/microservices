@@ -1,5 +1,5 @@
 const AuthService = require("../service/auth.service");
-const jwt = require("jsonwebtoken");
+const AuthorizationError = require("../errors/authorization.error");
 
 class AuthController {
   async login(req, res, next) {
@@ -7,72 +7,45 @@ class AuthController {
       const { accessToken, refreshToken } = await AuthService.login(req.body);
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
-      if (e.message === "Validation failed") res.status(400).json(e.payload);
-      else if (e.message === "User is not found")
-        res.status(401).send(e.message);
-      else res.status(500).send();
-
       next(e);
     }
   }
 
   async refresh(req, res, next) {
-    const authHeader = req.headers["authorization"];
-    if (typeof authHeader !== "string" && !authHeader.startsWith("Bearer ")) {
-      return res.status(401).send("Authorization header is not provided");
-    }
-    const oldAccessToken = authHeader.replace("Bearer ", "");
-
     try {
+      const authHeader = req.headers["authorization"];
+      if (typeof authHeader !== "string" && !authHeader.startsWith("Bearer ")) {
+        throw new AuthorizationError("Authorization header is not provided");
+      }
+      const oldAccessToken = authHeader.replace("Bearer ", "");
+
       const { accessToken, refreshToken } = await AuthService.refresh(
         oldAccessToken,
         req.body
       );
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
-      if (
-        [
-          "Access token is invalid",
-          "Refresh token is invalid",
-          "Refresh token is not found"
-        ].includes(e.message)
-      )
-        res.status(401).send(e.message);
-      else res.status(500).send();
-
       next(e);
     }
   }
 
   async logout(req, res, next) {
-    if (req.user === undefined) return res.status(401).send("Unauthorized");
-
     try {
+      if (req.user === undefined) throw new AuthorizationError();
+
       await AuthService.logout(req.user.accessToken, req.body);
       return res.status(200).send();
     } catch (e) {
-      if (
-        ["Access token is invalid", "Refresh token is invalid"].includes(
-          e.message
-        )
-      )
-        res.status(401).send(e.message);
-      else res.status(500).send();
-
       next(e);
     }
   }
 
   async checkAccessToken(req, res, next) {
     try {
-      if (!(await AuthService.isAccessTokenValid(req.body))) {
-        return res.status(401).send("Access token is invalid");
-      }
+      res.status(200).json(await AuthService.isAccessTokenValid(req.body));
     } catch (e) {
-      return next(e);
+      next(e);
     }
-
-    res.status(200).send();
   }
 }
 

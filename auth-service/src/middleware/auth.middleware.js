@@ -1,34 +1,37 @@
 const AuthService = require("../service/auth.service");
 const jwt = require("jsonwebtoken");
+const AuthorizationError = require("../errors/authorization.error");
 
 async function auth(req, res, next) {
-  const authorizationHeader = req.headers["authorization"];
-  if (
-    typeof authorizationHeader !== "string" ||
-    !authorizationHeader.startsWith("Bearer ")
-  )
-    return res
-      .status(401)
-      .send("Authorization header is required to be bearer access token");
-
-  const accessToken = authorizationHeader.replace("Bearer ", "");
-
   try {
+    const authorizationHeader = req.headers["authorization"];
+    if (
+      typeof authorizationHeader !== "string" ||
+      !authorizationHeader.startsWith("Bearer ")
+    )
+      throw new AuthorizationError(
+        "Authorization header is required to be bearer access token"
+      );
+
+    const accessToken = authorizationHeader.replace("Bearer ", "");
+
     if (!(await AuthService.isAccessTokenValid(accessToken))) {
-      return res.status(401).send("Access token is invalid");
+      throw new AuthorizationError(
+        "Access token is blacklisted or/and user was deleted"
+      );
     }
+
+    let user;
+    try {
+      user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+    } catch {
+      throw new AuthorizationError("Access token is invalid");
+    }
+
+    req.user = { ...user, accessToken };
   } catch (e) {
-    return next(e);
+    next(e);
   }
-
-  let user;
-  try {
-    user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-  } catch {
-    return res.status(401).send("Access token is invalid");
-  }
-
-  req.user = { ...user, accessToken };
 
   next();
 }

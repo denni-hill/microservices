@@ -1,6 +1,9 @@
-async function isAdmin(req, res, next) {
-  if (req.user === undefined) res.status(401).send();
-  else if (req.user.is_admin !== true) res.status(403).send();
+const AuthorizationError = require("../errors/authorization.error");
+const ForbiddenError = require("../errors/forbidden.error");
+
+async function isAdmin(req, _res, next) {
+  if (req.user === undefined) next(new AuthorizationError());
+  else if (req.user.is_admin !== true) next(new ForbiddenError());
   else next();
 }
 

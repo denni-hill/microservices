@@ -2,15 +2,17 @@ const UserDAO = require("../dao/user");
 const RefreshTokenDAO = require("../dao/refresh-token");
 const BlacklistedAccessTokenDAO = require("../dao/blacklisted-access-token");
 const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
-const PayloadedError = require("../payloaded-error");
+const ValidationError = require("../errors/validation.error");
+const NotFoundError = require("../errors/not-found.error");
+const InternalServerError = require("../errors/internal.error");
 const jwt = require("jsonwebtoken");
 const { validate, build } = require("chain-validator-js");
 const getUserHash = require("./get-user-hash");
 const { v4: uuid } = require("uuid");
+const BaseService = require("./base.service");
 
 function getTokensPair(user) {
-  if (user === undefined)
-    throw new PayloadedError("User is undefined", { user });
+  if (user === undefined) throw new InternalServerError("User is undefined");
 
   const accessToken = jwt.sign(
     { ...user, token_uuid: uuid() },
@@ -32,7 +34,7 @@ function getTokensPair(user) {
   return { accessToken, refreshToken };
 }
 
-class AuthService {
+class AuthService extends BaseService {
   async login({ email, password_hash }) {
     const validationResult = await validate(
       { email, password_hash },
@@ -41,12 +43,13 @@ class AuthService {
         password_hash: build().isString().bail().isHash("sha256")
       })
     );
-    if (validationResult.failed)
-      throw new PayloadedError("Validation failed", validationResult.errors);
+
+    if (validationResult.failed) throw new ValidationError(validationResult);
 
     const user = await UserDAO.getUserByHash(getUserHash(email, password_hash));
+
     if (user === undefined)
-      throw new PayloadedError("User is not found", { email, password_hash });
+      throw new NotFoundError({ email, password_hash }, "User");
 
     const { accessToken, refreshToken } = getTokensPair(user);
 
@@ -61,24 +64,24 @@ class AuthService {
     try {
       token = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     } catch (e) {
-      if (e.message === "jwt expired") accessTokenIsExpired = true;
-      else throw new PayloadedError("Access token is invalid", { accessToken });
+      if (e instanceof jwt.TokenExpiredError) accessTokenIsExpired = true;
+      else throw new InternalServerError("Access token is invalid", e);
     }
 
     try {
       jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    } catch {
-      throw new PayloadedError("Refresh token is invalid", { refreshToken });
+    } catch (e) {
+      throw new InternalServerError("Refresh token is invalid", e);
     }
 
     const user = await UserDAO.getUserByRefreshToken(refreshToken);
 
     if (user === undefined)
-      throw new PayloadedError("Refresh token is not found", { refreshToken });
+      throw new NotFoundError({ refreshToken }, "Refresh token");
 
     await RefreshTokenDAO.deleteRefreshToken(refreshToken);
     if (!accessTokenIsExpired)
-      await BlacklistedAccessTokenDAO.blackistToken(
+      await BlacklistedAccessTokenDAO.blacklistToken(
         accessToken,
         token.iat,
         token.exp
@@ -97,11 +100,11 @@ class AuthService {
 
     try {
       token = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    } catch {
-      throw new PayloadedError("Access token is invalid", { accessToken });
+    } catch (e) {
+      throw new InternalServerError("Access token is invalid", e);
     }
 
-    await BlacklistedAccessTokenDAO.blackistToken(
+    await BlacklistedAccessTokenDAO.blacklistToken(
       accessToken,
       token.iat,
       token.exp
@@ -109,8 +112,8 @@ class AuthService {
 
     try {
       jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    } catch {
-      throw new PayloadedError("Refresh token is invalid", { refreshToken });
+    } catch (e) {
+      throw new InternalServerError("Refresh token is invalid", e);
     }
 
     await RefreshTokenDAO.deleteRefreshToken(refreshToken);
@@ -119,18 +122,22 @@ class AuthService {
   async isAccessTokenBlacklisted(accessToken) {
     try {
       jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    } catch {
-      throw new PayloadedError("Access token is invalid", { accessToken });
+    } catch (e) {
+      throw new InternalServerError("Access token is invalid", e);
     }
 
     return await BlacklistedAccessTokenDAO.isTokenBlacklisted(accessToken);
   }
 
   async blacklistUserId(userId) {
+    this.validateId(userId);
+
     return await BlacklistedUserIdDAO.blacklistUserId(userId);
   }
 
   async isUserIdBlacklisted(userId) {
+    this.validateId(userId);
+
     return await BlacklistedUserIdDAO.isUserIdBlacklisted(userId);
   }
 
@@ -138,8 +145,8 @@ class AuthService {
     let user;
     try {
       user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    } catch {
-      throw new PayloadedError("Access token is invalid!", { accessToken });
+    } catch (e) {
+      throw new InternalServerError("Access token is invalid", e);
     }
 
     let conditions = await Promise.all([

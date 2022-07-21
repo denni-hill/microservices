@@ -1,6 +1,8 @@
 const redisClient = require("./redis");
 const router = require("./router");
 const express = require("express");
+const BaseError = require("./errors/base.error");
+const InternalServerError = require("./errors/internal.error");
 
 /**
  * @type { import("express").Application & {
@@ -10,11 +12,14 @@ const express = require("express");
  */
 const app = express();
 
-app.use(async (err, _req, _res, next) => {
-  console.log(err);
-});
-
 app.use(router);
+
+app.use((e, req, res, next) => {
+  if (e instanceof BaseError) {
+    if (e instanceof InternalServerError) console.log(e.error);
+    else res.status(e.getStatusCode()).json(e.getResponseBody());
+  } else console.log(e);
+});
 
 app.start = async () => {
   require("./database/knex");

@@ -1,11 +1,12 @@
 const { build, validate } = require("chain-validator-js");
 const UserDAO = require("../dao/user");
 const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
-const PayloadedError = require("../payloaded-error");
 const getUserHash = require("./get-user-hash");
 const ValidationError = require("../errors/validation.error");
+const NotFoundError = require("../errors/not-found.error");
+const BaseService = require("./base.service");
 
-class UserService {
+class UserService extends BaseService {
   async createUser(userDto) {
     const validationResult = await validate(
       userDto,
@@ -27,8 +28,7 @@ class UserService {
       })
     );
 
-    if (validationResult.failed)
-      throw new PayloadedError("Validation failed", validationResult.errors);
+    if (validationResult.failed) throw new ValidationError(validationResult);
 
     const userData = { ...validationResult.validated };
 
@@ -38,17 +38,17 @@ class UserService {
   }
 
   async getUser(userId) {
-    const validationResult = await validate(userId, build().isInt());
-    if (validationResult.failed)
-      throw new PayloadedError("Validation failed", validationResult.errors);
+    this.validateId(userId);
     return await UserDAO.getUser(userId);
   }
 
   async updateUser(userId, userDto) {
+    this.validateId(userId);
+
     const user = await UserDAO.getUser(userId);
 
     if (user === undefined)
-      throw new PayloadedError("User is not found", { id: userId });
+      throw new NotFoundError("User is not found", { id: userId });
 
     const validationResult = await validate(
       userDto,
@@ -117,12 +117,16 @@ class UserService {
   }
 
   async deleteUser(userId) {
+    this.validateId(userId);
+
     const res = await UserDAO.deleteUser(userId);
     if (res > 0) await BlacklistedUserIdDAO.blacklistUserId(userId);
     return res;
   }
 
   async isExist(userId) {
+    this.validateId(userId);
+
     return await UserDAO.isExist(userId);
   }
 }

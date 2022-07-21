@@ -103,7 +103,7 @@ describe("testing auth routes", () => {
         }
       });
     } catch (e) {
-      expect(e.response.status).toBe(401);
+      expect(e.response.status).toBe(404);
     }
   });
 

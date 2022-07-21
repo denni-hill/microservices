@@ -4,18 +4,10 @@ const NotFoundError = require("../errors/not-found.error");
 class UserController {
   async create(req, res, next) {
     try {
-      if (req.user === undefined || req.user.is_admin !== true)
-        delete req.body.is_admin;
-    } catch {}
-
-    try {
       const user = await UserService.createUser(req.body);
       delete user.hash;
       return res.status(201).json(user);
     } catch (e) {
-      if (e.message === "Validation failed") res.status(400).json(e.payload);
-      else res.status(500).send();
-
       next(e);
     }
   }
@@ -24,19 +16,15 @@ class UserController {
     try {
       const user = await UserService.get(req.params.userId);
       if (user === undefined)
-        return next(
-          new NotFoundError(
-            {
-              id: req.params.id
-            },
-            "User"
-          )
+        throw new NotFoundError(
+          {
+            id: req.params.id
+          },
+          "User"
         );
-      else return res.status(200).json(user);
-    } catch (e) {
-      if (e.message === "Validation failed") res.status(400).send(e.payload);
-      else res.status(500).send();
 
+      return res.status(200).json(user);
+    } catch (e) {
       next(e);
     }
   }
@@ -51,11 +39,6 @@ class UserController {
       const user = await UserService.updateUser(req.params.userId, req.body);
       return res.status(200).json(user);
     } catch (e) {
-      if (e.message === "User is not found") res.status(404).send();
-      else if (e.message === "Validation failed")
-        res.status(400).json(e.payload);
-      else res.status(500).send();
-
       next(e);
     }
   }
@@ -66,13 +49,11 @@ class UserController {
         req.params.userId
       );
       if (affectedRowsNumber === 0)
-        next(
-          new NotFoundError(
-            {
-              id: req.params.userId
-            },
-            "User"
-          )
+        throw new NotFoundError(
+          {
+            id: req.params.userId
+          },
+          "User"
         );
       else return res.status(200).send();
     } catch (e) {
@@ -85,13 +66,11 @@ class UserController {
       if (await UserService.isExist(req.params.userId))
         return res.status(200).send(true);
       else
-        next(
-          new NotFoundError(
-            {
-              id: req.params.userId
-            },
-            "User"
-          )
+        throw new NotFoundError(
+          {
+            id: req.params.userId
+          },
+          "User"
         );
     } catch (e) {
       next(e);
