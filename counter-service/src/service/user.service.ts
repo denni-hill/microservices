@@ -1,17 +1,37 @@
 import { build, validate } from "chain-validator-js";
-import { DeepPartial } from "typeorm";
 import UserDAO from "../dao/user";
 import { User } from "../database/entities/user";
-import { ValidationError } from "../errors/validation.error";
+import NotFoundError from "../errors/not-found.error";
+import ValidationError from "../errors/validation.error";
 
-const UserDTOValidationRules = {
-  nickname: build().isString().bail().trim().isLength({ min: 2, max: 20 }),
+const UserDTOValidationRules = () => ({
+  nickname: build()
+    .isString()
+    .bail()
+    .not()
+    .contains("#")
+    .bail()
+    .trim()
+    .isLength({ min: 2, max: 20 }),
   sex: build().isBoolean(),
   isAdmin: build().optional()
+});
+
+//creates 4-length number to allow nickname collisions in [1000, 9999] to be easy to parse
+const createUniqueNicknameDigits = async (
+  nickname: string
+): Promise<string> => {
+  const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+  let digits = random(1000, 10000);
+  while (await UserDAO.isExist({ where: { nickname, digits } })) {
+    digits = random(1000, 10000);
+  }
+
+  return digits;
 };
 
 class UserService {
-  async createUser(userDTO: DeepPartial<User>): Promise<User> {
+  async createUser(userDTO: Partial<User>): Promise<User> {
     const validationResult = await validate(
       userDTO,
       build().schema<User>({
@@ -21,24 +41,32 @@ class UserService {
           .not()
           .custom(
             () => async (authUserId: number) =>
-              UserDAO.isAuthUserIdRegistered(authUserId)
-          ),
-        ...UserDTOValidationRules
+              await UserDAO.isAuthUserIdRegistered(authUserId)
+          )
+          .withMessage("Auth user id is already registered"),
+        ...UserDTOValidationRules()
       })
     );
 
     if (validationResult.failed) throw new ValidationError(validationResult);
 
-    return await UserDAO.create(userDTO);
+    validationResult.validated.digits = await createUniqueNicknameDigits(
+      validationResult.validated.nickname
+    );
+
+    return await UserDAO.create(validationResult.validated);
   }
 
-  async updateUser(userId: number, userDTO: DeepPartial<User>): Promise<User> {
+  async updateUser(userId: number, userDTO: Partial<User>): Promise<User> {
     const validationResult = await validate(
       userDTO,
-      build().schema<User>(UserDTOValidationRules)
+      build().schema<User>(UserDTOValidationRules())
     );
 
     if (validationResult.failed) throw new ValidationError(validationResult);
+
+    if (!(await UserDAO.isExist({ where: { id: userId } })))
+      throw new NotFoundError({ id: userId }, "User");
 
     return (
       await UserDAO.update(
@@ -47,27 +75,29 @@ class UserService {
             id: userId
           }
         },
-        userDTO
+        validationResult.validated
       )
     )[0];
   }
 
-  async deleteUser(userId: number): Promise<boolean> {
-    return (
-      (await UserDAO.delete({
-        where: {
-          id: userId
-        }
-      })) > 0
-    );
+  async deleteUser(userId: number): Promise<number> {
+    if (!(await UserDAO.isExist({ where: { id: userId } })))
+      throw new NotFoundError({ id: userId }, "User");
+
+    return await UserDAO.delete({
+      where: {
+        id: userId
+      }
+    });
   }
 
-  async deleteUserByAuthId(authUserId: number): Promise<boolean> {
-    return (
-      (await UserDAO.delete({
-        where: { authUserId }
-      })) > 0
-    );
+  async deleteUserByAuthId(authUserId: number): Promise<number> {
+    if (!(await UserDAO.isExist({ where: { authUserId } })))
+      throw new NotFoundError({ authUserId }, "User");
+
+    return await UserDAO.delete({
+      where: { authUserId }
+    });
   }
 
   async getUser(userId: number) {
