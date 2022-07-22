@@ -130,13 +130,13 @@ class AuthService extends BaseService {
   }
 
   async blacklistUserId(userId) {
-    this.validateId(userId);
+    await this.validateId(userId);
 
     return await BlacklistedUserIdDAO.blacklistUserId(userId);
   }
 
   async isUserIdBlacklisted(userId) {
-    this.validateId(userId);
+    await this.validateId(userId);
 
     return await BlacklistedUserIdDAO.isUserIdBlacklisted(userId);
   }

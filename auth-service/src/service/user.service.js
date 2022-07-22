@@ -38,12 +38,12 @@ class UserService extends BaseService {
   }
 
   async getUser(userId) {
-    this.validateId(userId);
+    await this.validateId(userId);
     return await UserDAO.getUser(userId);
   }
 
   async updateUser(userId, userDto) {
-    this.validateId(userId);
+    await this.validateId(userId);
 
     const user = await UserDAO.getUser(userId);
 
@@ -117,7 +117,7 @@ class UserService extends BaseService {
   }
 
   async deleteUser(userId) {
-    this.validateId(userId);
+    await this.validateId(userId);
 
     const res = await UserDAO.deleteUser(userId);
     if (res > 0) await BlacklistedUserIdDAO.blacklistUserId(userId);
@@ -125,7 +125,7 @@ class UserService extends BaseService {
   }
 
   async isExist(userId) {
-    this.validateId(userId);
+    await this.validateId(userId);
 
     return await UserDAO.isExist(userId);
   }

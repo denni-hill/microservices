@@ -63,15 +63,7 @@ class UserController {
 
   async isExist(req, res, next) {
     try {
-      if (await UserService.isExist(req.params.userId))
-        return res.status(200).send(true);
-      else
-        throw new NotFoundError(
-          {
-            id: req.params.userId
-          },
-          "User"
-        );
+      return res.status(200).json(await UserService.isExist(req.params.userId));
     } catch (e) {
       next(e);
     }
