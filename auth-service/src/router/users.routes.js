@@ -3,12 +3,13 @@ const auth = require("../middleware/auth.middleware");
 const isAdmin = require("../middleware/is-admin.middleware");
 const router = require("express").Router();
 const { json } = require("body-parser");
+const ForbiddenError = require("../errors/forbidden.error");
 
 router.post(
   "/register",
   (req, res, next) => {
     if (process.env.REGISTRATION_ENABLED === "true") next();
-    else res.status(403).send("REGISTRATION IS DISABLED");
+    else new ForbiddenError("Registration is disabled");
   },
   json(),
   UserController.create
