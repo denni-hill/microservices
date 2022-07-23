@@ -21,12 +21,7 @@ async function auth(req, res, next) {
       );
     }
 
-    let user;
-    try {
-      user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    } catch {
-      throw new AuthorizationError("Access token is invalid");
-    }
+    const user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
     req.user = { ...user, accessToken };
   } catch (e) {
