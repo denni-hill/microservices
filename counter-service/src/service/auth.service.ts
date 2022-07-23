@@ -6,13 +6,16 @@ import { BaseService } from "./base.service";
 const authServiceAxios = Axios.create({
   baseURL: process.env.AUTH_SERVICE_HOST,
   headers: {
-    authorization: jwt.sign(
-      {
-        is_admin: true,
-        user_id: "COUNTER-SERVICE"
-      },
-      process.env.ACCESS_TOKEN_SECRET
-    )
+    authorization:
+      "Bearer " +
+      jwt.sign(
+        {
+          is_admin: true,
+          isInternalServiceToken: true
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { issuer: process.env.DOMAIN }
+      )
   }
 });
 
@@ -42,10 +45,17 @@ class AuthService extends BaseService {
 
   async isAuthUserExist(authUserId: number): Promise<boolean> {
     await this.validateId(authUserId);
+
     try {
-      return (await authServiceAxios.get(`/users/is-exist/${authUserId}`)).data;
-    } catch {
-      return false;
+      return (
+        (await authServiceAxios.get(`/users/is-exist/${authUserId}`)).data ===
+        true
+      );
+    } catch (e) {
+      throw new InternalServerError(
+        "Cound not check if user exist in auth service",
+        e
+      );
     }
   }
 }
