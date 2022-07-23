@@ -149,6 +149,8 @@ class AuthService extends BaseService {
       throw new InternalServerError("Access token is invalid", e);
     }
 
+    if (user.isInternalServiceToken === true) return true;
+
     let conditions = await Promise.all([
       this.isAccessTokenBlacklisted(accessToken),
       this.isUserIdBlacklisted(user.id)
