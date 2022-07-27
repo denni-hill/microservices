@@ -15,7 +15,7 @@ class ValidationError extends BaseError {
   }
 
   getStatusCode() {
-    return 400;
+    return 422;
   }
 }
 

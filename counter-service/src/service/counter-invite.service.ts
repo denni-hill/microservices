@@ -1,5 +1,5 @@
 import { CounterInvite } from "../database/entities/counter-invite";
-import { BaseService } from "./base.service";
+import BaseService from "./base.service";
 
 import counterDAO from "../dao/counter";
 import userDAO from "../dao/user";
@@ -42,7 +42,7 @@ async function parseNicknameDigits(
   return validationResult.validated;
 }
 
-class CounterInviteService extends BaseService {
+class CounterInviteService {
   async createInvite(
     counterId: number,
     fromUserId: number,
@@ -50,8 +50,8 @@ class CounterInviteService extends BaseService {
   ): Promise<CounterInvite> {
     const { nickname, digits } = await Promise.all([
       parseNicknameDigits(toUserNicknameDigits),
-      this.validateId(counterId),
-      this.validateId(fromUserId)
+      BaseService.validateId(counterId),
+      BaseService.validateId(fromUserId)
     ])[0];
 
     const [counter, fromUser, toUser] = await Promise.all([
@@ -87,7 +87,7 @@ class CounterInviteService extends BaseService {
   }
 
   async deleteInvite(inviteId: number) {
-    await this.validateId(inviteId);
+    await BaseService.validateId(inviteId);
 
     if (!(await counterInviteDAO.isExist({ where: { id: inviteId } })))
       throw new NotFoundError({ id: inviteId }, "Invite");

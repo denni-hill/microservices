@@ -1,7 +1,7 @@
 import Axios from "axios";
 import jwt from "jsonwebtoken";
 import InternalServerError from "../errors/internal.error";
-import { BaseService } from "./base.service";
+import BaseService from "./base.service";
 
 const authServiceAxios = Axios.create({
   baseURL: process.env.AUTH_SERVICE_HOST,
@@ -19,7 +19,7 @@ const authServiceAxios = Axios.create({
   }
 });
 
-class AuthService extends BaseService {
+class AuthService {
   async isAccessTokenValid(accessToken: string): Promise<boolean> {
     try {
       jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
@@ -44,7 +44,7 @@ class AuthService extends BaseService {
   }
 
   async isAuthUserExist(authUserId: number): Promise<boolean> {
-    await this.validateId(authUserId);
+    await BaseService.validateId(authUserId);
 
     try {
       return (

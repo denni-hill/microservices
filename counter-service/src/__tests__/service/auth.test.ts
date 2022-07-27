@@ -10,7 +10,6 @@ dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 process.env.AUTH_SERVICE_HOST = "http://localhost/auth";
 
 import authService from "../../service/auth.service";
-import BaseError from "../../errors/base.error";
 import InternalServerError from "../../errors/internal.error";
 
 const accessToken = jwt.sign(
@@ -46,9 +45,6 @@ describe("Test auth service", () => {
       expect(await authService.isAuthUserExist(999)).toBe(false);
     } catch (e) {
       if (e instanceof InternalServerError) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        console.log(e.error.response.data);
         throw e.error;
       }
     }
@@ -57,7 +53,7 @@ describe("Test auth service", () => {
   test("creates user in auth service", async () => {
     try {
       authUser = (
-        await authServiceAxios.post("/users/register", { ...testUserData })
+        await authServiceAxios.post("/users/create", { ...testUserData })
       ).data;
     } catch (e) {
       throw e;

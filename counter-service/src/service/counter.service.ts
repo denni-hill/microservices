@@ -1,7 +1,7 @@
 import { build, validate } from "chain-validator-js";
 import { Counter } from "../database/entities/counter";
 import ValidationError from "../errors/validation.error";
-import { BaseService } from "./base.service";
+import BaseService from "./base.service";
 import counterDAO from "../dao/counter";
 import NotFoundError from "../errors/not-found.error";
 
@@ -15,7 +15,7 @@ const CounterDTOValidationRules = () =>
       .isLength({ min: 0, max: 1024 })
   });
 
-class CounterService extends BaseService {
+class CounterService {
   async createCounter(counterDTO: Partial<Counter>): Promise<Counter> {
     const validationResult = await validate(
       counterDTO,
@@ -31,7 +31,7 @@ class CounterService extends BaseService {
     counterId: number,
     counterDTO: Partial<Counter>
   ): Promise<Counter> {
-    await this.validateId(counterId);
+    await BaseService.validateId(counterId);
 
     if (!(await counterDAO.isExist({ where: { id: counterId } })))
       throw new NotFoundError({ id: counterId }, "Counter");
@@ -50,7 +50,7 @@ class CounterService extends BaseService {
   }
 
   async deleteCounter(counterId: number): Promise<number> {
-    await this.validateId(counterId);
+    await BaseService.validateId(counterId);
 
     if (!(await counterDAO.isExist({ where: { id: counterId } })))
       throw new NotFoundError({ id: counterId }, "Counter");
@@ -59,7 +59,7 @@ class CounterService extends BaseService {
   }
 
   async getCounter(counterId: number): Promise<Counter> {
-    await this.validateId(counterId);
+    await BaseService.validateId(counterId);
 
     if (!(await counterDAO.isExist({ where: { id: counterId } })))
       throw new NotFoundError({ id: counterId }, "Counter");

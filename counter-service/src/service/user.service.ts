@@ -3,7 +3,8 @@ import UserDAO from "../dao/user";
 import { User } from "../database/entities/user";
 import NotFoundError from "../errors/not-found.error";
 import ValidationError from "../errors/validation.error";
-import { BaseService } from "./base.service";
+import authService from "./auth.service";
+import BaseService from "./base.service";
 
 const UserDTOValidationRules = () => ({
   nickname: build()
@@ -31,20 +32,20 @@ const createUniqueNicknameDigits = async (
   return digits;
 };
 
-class UserService extends BaseService {
+class UserService {
   async createUser(userDTO: Partial<User>): Promise<User> {
     const validationResult = await validate(
       userDTO,
       build().schema<User>({
         authUserId: build()
-          .isNumeric()
+          .isInt()
+          .bail()
+          .custom(() => authService.isAuthUserExist)
+          .withMessage("Auth user does not exist")
           .bail()
           .not()
-          .custom(
-            () => async (authUserId: number) =>
-              await UserDAO.isAuthUserIdRegistered(authUserId)
-          )
-          .withMessage("Auth user id is already registered"),
+          .custom(() => UserDAO.isAuthUserIdRegistered)
+          .withMessage("Auth user id is already registered in counter service"),
         ...UserDTOValidationRules()
       })
     );
@@ -59,7 +60,10 @@ class UserService extends BaseService {
   }
 
   async updateUser(userId: number, userDTO: Partial<User>): Promise<User> {
-    await this.validateId(userId);
+    await BaseService.validateId(userId);
+
+    if (!(await UserDAO.isExist({ where: { id: userId } })))
+      throw new NotFoundError({ id: userId }, "User");
 
     const validationResult = await validate(
       userDTO,
@@ -68,8 +72,9 @@ class UserService extends BaseService {
 
     if (validationResult.failed) throw new ValidationError(validationResult);
 
-    if (!(await UserDAO.isExist({ where: { id: userId } })))
-      throw new NotFoundError({ id: userId }, "User");
+    validationResult.validated.digits = await createUniqueNicknameDigits(
+      validationResult.validated.nickname
+    );
 
     return (
       await UserDAO.update(
@@ -84,7 +89,7 @@ class UserService extends BaseService {
   }
 
   async deleteUser(userId: number): Promise<number> {
-    await this.validateId(userId);
+    await BaseService.validateId(userId);
 
     if (!(await UserDAO.isExist({ where: { id: userId } })))
       throw new NotFoundError({ id: userId }, "User");
@@ -97,7 +102,7 @@ class UserService extends BaseService {
   }
 
   async deleteUserByAuthId(authUserId: number): Promise<number> {
-    await this.validateId(authUserId);
+    await BaseService.validateId(authUserId);
 
     if (!(await UserDAO.isExist({ where: { authUserId } })))
       throw new NotFoundError({ authUserId }, "User");
@@ -107,24 +112,31 @@ class UserService extends BaseService {
     });
   }
 
-  async getUser(userId: number) {
-    await this.validateId(userId);
+  async getUser(userId: number): Promise<User> {
+    await BaseService.validateId(userId);
 
-    return await UserDAO.findOne({
+    const user = await UserDAO.findOne({
       where: {
         id: userId
       }
     });
+
+    if (user === undefined) throw new NotFoundError({ id: userId }, "User");
+    return user;
   }
 
-  async getUserByUserAuthId(authUserId: number) {
-    await this.validateId(authUserId);
+  async getUserByUserAuthId(authUserId: number): Promise<User> {
+    await BaseService.validateId(authUserId);
 
-    return await UserDAO.findOne({
+    const user = await UserDAO.findOne({
       where: {
         authUserId
       }
     });
+
+    if (user === undefined) throw new NotFoundError({ authUserId }, "User");
+
+    return user;
   }
 }
 

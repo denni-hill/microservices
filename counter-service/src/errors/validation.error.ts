@@ -13,7 +13,7 @@ class ValidationError extends BaseError {
     if (this.result instanceof ValidationResult) return this.result.errors;
     else return this.result;
   };
-  getStatusCode = () => 400;
+  getStatusCode = () => 422;
 }
 
 export default ValidationError;

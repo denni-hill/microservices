@@ -23,7 +23,7 @@ export class User {
   @Column()
   digits: number;
 
-  @Column()
+  @Column({ default: false })
   isAdmin: boolean;
 
   @Column()
