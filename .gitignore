@@ -1,2 +1,4 @@
-logs
-redis/cache
+/logs
+/redis/cache
+/zookeeper_data
+/kafka

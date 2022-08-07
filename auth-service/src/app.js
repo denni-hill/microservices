@@ -3,6 +3,7 @@ const router = require("./router");
 const express = require("express");
 const BaseError = require("./errors/base.error");
 const InternalServerError = require("./errors/internal.error");
+const { connectKafka, disconnectKafka } = require("./kafka");
 
 /**
  * @type { import("express").Application & {
@@ -24,6 +25,7 @@ app.use((e, req, res, next) => {
 app.start = async () => {
   require("./database/knex");
   await redisClient.connect();
+  await connectKafka();
   app.server = await new Promise((res) => {
     const server = app.listen(process.env.PORT, () => {
       console.log(`HTTP server started on port ${process.env.PORT}`);
@@ -34,6 +36,7 @@ app.start = async () => {
 
 app.stop = async () => {
   await redisClient.disconnect();
+  await disconnectKafka();
   await new Promise((res) => {
     app.server.close(res);
   });
