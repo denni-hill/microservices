@@ -5,6 +5,7 @@ const getUserHash = require("./get-user-hash");
 const ValidationError = require("../errors/validation.error");
 const NotFoundError = require("../errors/not-found.error");
 const BaseService = require("./base.service");
+const UserProducer = require("../kafka/producers/user.producer");
 
 class UserService extends BaseService {
   async createUser(userDto) {
@@ -120,7 +121,10 @@ class UserService extends BaseService {
     await this.validateId(userId);
 
     const res = await UserDAO.deleteUser(userId);
-    if (res > 0) await BlacklistedUserIdDAO.blacklistUserId(userId);
+    if (res > 0) {
+      await BlacklistedUserIdDAO.blacklistUserId(userId);
+      await UserProducer.userDeletedEvent(userId);
+    }
     return res;
   }
 

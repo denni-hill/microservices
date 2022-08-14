@@ -5,7 +5,9 @@ const kafka = new Kafka({
   brokers: [`${process.env.KAFKA_HOST || "localhost"}:9092`]
 });
 
-const producer = kafka.producer();
+const producer = kafka.producer({
+  allowAutoTopicCreation: true
+});
 
 const connectKafka = async () => {
   try {
