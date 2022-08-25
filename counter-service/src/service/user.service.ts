@@ -5,6 +5,7 @@ import NotFoundError from "../errors/not-found.error";
 import ValidationError from "../errors/validation.error";
 import authService from "./auth.service";
 import BaseService from "./base.service";
+import { userDeletedConsumer } from "../kafka";
 
 const UserDTOValidationRules = () => ({
   nickname: build()
@@ -140,4 +141,17 @@ class UserService {
   }
 }
 
-export default new UserService();
+const userService = new UserService();
+
+userDeletedConsumer.on("consumer.connect", () => {
+  userDeletedConsumer.run({
+    autoCommit: true,
+    autoCommitInterval: 5000,
+    eachMessage: async (payload) => {
+      const authUserId = Number(payload.message.value.toString());
+      await userService.deleteUserByAuthId(authUserId);
+    }
+  });
+});
+
+export default userService;

@@ -8,6 +8,7 @@ import { defaultDataSource } from "./database";
 import router from "./router";
 import BaseError from "./errors/base.error";
 import InternalServerError from "./errors/internal.error";
+import { connectKafka, disconnectKafka } from "./kafka";
 
 sourceMapSupport.install();
 dotenv.config();
@@ -26,9 +27,20 @@ app.use((e, _req, res: Response, next) => {
 });
 
 app.start = async () => {
-  await defaultDataSource.initialize();
-  console.log("Database is connected successfully...");
-  await redisClient.connect();
+  try {
+    await defaultDataSource.initialize();
+    console.log("Database is connected successfully...");
+  } catch (e) {
+    console.log("Database connection error", e);
+  }
+  try {
+    await redisClient.connect();
+  } catch (e) {
+    console.log("Redis connection error", e);
+  }
+
+  await connectKafka();
+
   app.server = await new Promise((res) => {
     const server = app.listen(process.env.PORT, () => {
       console.log(`HTTP server started on port ${process.env.PORT}`);
@@ -39,6 +51,7 @@ app.start = async () => {
 
 app.stop = async () => {
   await redisClient.disconnect();
+  await disconnectKafka();
   await new Promise((res) => {
     app.server.close(res);
   });
