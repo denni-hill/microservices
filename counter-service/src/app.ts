@@ -8,7 +8,7 @@ import { defaultDataSource } from "./database";
 import router from "./router";
 import BaseError from "./errors/base.error";
 import InternalServerError from "./errors/internal.error";
-import { connectKafka, disconnectKafka } from "./kafka";
+import messenger from "./rabbitmq/messenger";
 
 sourceMapSupport.install();
 dotenv.config();
@@ -38,8 +38,12 @@ app.start = async () => {
   } catch (e) {
     console.log("Redis connection error", e);
   }
-
-  await connectKafka();
+  try {
+    await messenger.connect();
+    console.log("RabbitMQ is connected successfully...");
+  } catch (e) {
+    console.log("Could not connect RabbitMQ!", e);
+  }
 
   app.server = await new Promise((res) => {
     const server = app.listen(process.env.PORT, () => {
@@ -51,7 +55,6 @@ app.start = async () => {
 
 app.stop = async () => {
   await redisClient.disconnect();
-  await disconnectKafka();
   await new Promise((res) => {
     app.server.close(res);
   });

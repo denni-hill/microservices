@@ -5,7 +5,7 @@ const getUserHash = require("./get-user-hash");
 const ValidationError = require("../errors/validation.error");
 const NotFoundError = require("../errors/not-found.error");
 const BaseService = require("./base.service");
-const UserProducer = require("../kafka/producers/user.producer");
+const messenger = require("../rabbitmq/messenger");
 
 class UserService extends BaseService {
   async createUser(userDto) {
@@ -123,7 +123,7 @@ class UserService extends BaseService {
     const res = await UserDAO.deleteUser(userId);
     if (res > 0) {
       await BlacklistedUserIdDAO.blacklistUserId(userId);
-      await UserProducer.userDeletedEvent(userId);
+      await messenger.sendMessage("auth-user-deleted", userId);
     }
     return res;
   }

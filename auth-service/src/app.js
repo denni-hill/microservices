@@ -3,7 +3,7 @@ const router = require("./router");
 const express = require("express");
 const BaseError = require("./errors/base.error");
 const InternalServerError = require("./errors/internal.error");
-const { connectKafka, disconnectKafka } = require("./kafka");
+const messenger = require("./rabbitmq/messenger");
 
 /**
  * @type { import("express").Application & {
@@ -25,7 +25,12 @@ app.use((e, req, res, next) => {
 app.start = async () => {
   require("./database/knex");
   await redisClient.connect();
-  await connectKafka();
+  try {
+    await messenger.connect();
+    console.log("RabbitMQ is connected successfully...");
+  } catch (e) {
+    console.log("Could not connect RabbitMQ!", e);
+  }
   app.server = await new Promise((res) => {
     const server = app.listen(process.env.PORT, () => {
       console.log(`HTTP server started on port ${process.env.PORT}`);
@@ -36,7 +41,7 @@ app.start = async () => {
 
 app.stop = async () => {
   await redisClient.disconnect();
-  await disconnectKafka();
+  messenger.disconnect();
   await new Promise((res) => {
     app.server.close(res);
   });

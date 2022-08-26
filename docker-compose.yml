@@ -6,7 +6,7 @@ services:
     depends_on:
       - database
       - redis
-      - kafka
+      - rabbitmq
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -21,7 +21,7 @@ services:
     depends_on:
       - database
       - redis
-      - kafka
+      - rabbitmq
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -36,7 +36,7 @@ services:
     depends_on:
       - database
       - redis
-      - kafka
+      - rabbitmq
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -48,7 +48,7 @@ services:
     container_name: logging_service
     depends_on:
       - database
-      - kafka
+      - rabbitmq
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -80,26 +80,12 @@ services:
       - .env
     ports:
       - 6379:6379
-  kafka:
-    image: bitnami/kafka:3.2.1
-    container_name: kafka_server
+  rabbitmq:
+    image: rabbitmq:3.10.7
+    container_name: rabbitmq_server
     restart: always
-    environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
-      - ./kafka:/bitnami
-    depends_on:
-      - zookeeper
-  zookeeper:
-    image: docker.io/bitnami/zookeeper:3.8
-    container_name: zookeeper_server
-    ports:
-      - 2181:2181
-    volumes:
-      - ./zookeeper_data:/bitnami
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ./rabbitmq:/var/lib/rabbitmq
   nginx:
     image: nginx:1.21.6-alpine
     container_name: nginx_server
