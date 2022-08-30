@@ -1,27 +1,35 @@
 const events = require("events");
-const amqp = require("amqplib/callback_api");
+const amqp = require("amqplib");
 const eventEmmiter = new events.EventEmitter();
 
+/**
+ * @type { amqp.Connection }
+ */
 let connection = undefined;
+/**
+ * @type { amqp.Channel }
+ */
+let consumer = undefined;
+/**
+ * @type { amqp.Channel }
+ */
+let publisher = undefined;
+let publisherKnownQueues = [];
 
 class Messenger {
-  connect = () =>
-    new Promise((res, rej) => {
-      amqp.connect("amqp://rabbitmq", (error, conn) => {
-        if (error) {
-          rej(error);
-          return;
-        }
+  async connect() {
+    connection = await amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`);
+    [consumer, publisher] = await Promise.all([
+      connection.createChannel(),
+      connection.createChannel()
+    ]);
+  }
 
-        connection = conn;
-        res(conn);
-      });
-    });
-
-  disconnect() {
+  async disconnect() {
     if (connection !== undefined) {
-      connection.close();
-      connection = undefined;
+      await Promise.all([consumer.close(), publisher.close()]);
+      await connection.close();
+      connection = consumer = publisher = undefined;
     }
   }
 
@@ -35,37 +43,23 @@ class Messenger {
 
     if (connection === undefined) await this.connect();
 
-    connection.createChannel((error, channel) => {
-      if (error) throw error;
+    if (!publisherKnownQueues.includes(queue)) {
+      await publisher.assertQueue(queue, { durable: false });
+      publisherKnownQueues.push(queue);
+    }
 
-      channel.assertQueue(queue, {
-        durable: false
-      });
-
-      channel.sendToQueue(queue, Buffer.from(jsonMessage));
-    });
+    publisher.sendToQueue(queue, Buffer.from(jsonMessage));
   }
 
   async consumeMessages(queue, messageHandler) {
     if (connection === undefined) await this.connect();
 
     if (!eventEmmiter.eventNames().includes(queue)) {
-      connection.createChannel((error, channel) => {
-        if (error) throw error;
-
-        channel.assertQueue(queue, {
-          durable: false
+      await consumer.assertQueue(queue, { durable: false });
+      await consumer.consume(queue, (msg) => {
+        eventEmmiter.emit(queue, JSON.parse(msg.toString()), {
+          noAck: true
         });
-
-        channel.consume(
-          queue,
-          (msg) => {
-            eventEmmiter.emit(queue, JSON.parse(msg.toString()));
-          },
-          {
-            noAck: true
-          }
-        );
       });
     }
 

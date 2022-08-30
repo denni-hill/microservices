@@ -7,7 +7,7 @@ const path = require("path");
 dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
-process.env.REDIS_HOST = "localhost";
+process.env.REDIS_HOST = process.env.RABBITMQ_HOST = "localhost";
 
 const redisClient = require("../../redis");
 const UserService = require("../../service/user.service");

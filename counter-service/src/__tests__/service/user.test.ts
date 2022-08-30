@@ -7,7 +7,10 @@ import jwt from "jsonwebtoken";
 dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
-process.env.DATABASE_HOST = process.env.REDIS_HOST = "localhost";
+process.env.DATABASE_HOST =
+  process.env.REDIS_HOST =
+  process.env.RABBITMQ_HOST =
+    "localhost";
 process.env.AUTH_SERVICE_HOST = "http://localhost/auth";
 
 import userService from "../../service/user.service";

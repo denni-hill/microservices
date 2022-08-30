@@ -2,7 +2,7 @@ const Knex = require("knex");
 const knexfile = require("./knexfile");
 
 let config;
-if (process.env.NODE_ENV === "docker") config = knexfile.docker;
+if (knexfile[process.env.NODE_ENV] !== undefined) config = knexfile.docker;
 else config = knexfile.default;
 
 /**

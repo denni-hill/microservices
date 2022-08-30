@@ -8,6 +8,7 @@ dotenv.config();
 dotenv.config({ path: path.join(process.cwd(), "..", ".env") });
 
 process.env.AUTH_SERVICE_HOST = "http://localhost/auth";
+process.env.RABBITMQ_HOST = "http://localhost";
 
 import authService from "../../service/auth.service";
 import InternalServerError from "../../errors/internal.error";

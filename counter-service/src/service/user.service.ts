@@ -92,9 +92,6 @@ class UserService {
   async deleteUser(userId: number): Promise<number> {
     await BaseService.validateId(userId);
 
-    if (!(await UserDAO.isExist({ where: { id: userId } })))
-      throw new NotFoundError({ id: userId }, "User");
-
     return await UserDAO.delete({
       where: {
         id: userId
@@ -104,9 +101,6 @@ class UserService {
 
   async deleteUserByAuthId(authUserId: number): Promise<number> {
     await BaseService.validateId(authUserId);
-
-    if (!(await UserDAO.isExist({ where: { authUserId } })))
-      throw new NotFoundError({ authUserId }, "User");
 
     return await UserDAO.delete({
       where: { authUserId }
@@ -143,6 +137,12 @@ class UserService {
 
 const userService = new UserService();
 
-messenger.consumeMessages("auth-user-deleted", userService.deleteUserByAuthId);
+messenger.consumeMessages("auth-user-deleted", (msg) => {
+  userService
+    .deleteUserByAuthId(JSON.parse(msg.content.toString()))
+    .then(() => {
+      console.log("user deleted");
+    });
+});
 
 export default userService;
