@@ -55,6 +55,7 @@ app.start = async () => {
 
 app.stop = async () => {
   await redisClient.disconnect();
+  await messenger.disconnect();
   await new Promise((res) => {
     app.server.close(res);
   });

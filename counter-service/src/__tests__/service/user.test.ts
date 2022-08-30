@@ -17,6 +17,7 @@ import userService from "../../service/user.service";
 import NotFoundError from "../../errors/not-found.error";
 import { defaultDataSource } from "../../database";
 import { User } from "../../database/entities/user";
+import messenger from "../../rabbitmq/messenger";
 
 const accessToken = jwt.sign(
   {
@@ -129,4 +130,5 @@ describe("testing user service", () => {
 
 afterAll(async () => {
   await defaultDataSource.destroy();
+  await messenger.disconnect();
 });
