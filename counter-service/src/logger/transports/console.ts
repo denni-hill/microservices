@@ -13,7 +13,8 @@ export default function consoleTransport() {
           verbose: "cyan",
           debug: "white"
         }
-      })
+      }),
+      winston.format.timestamp()
     ),
     handleExceptions: true
   });
