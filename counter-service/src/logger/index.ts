@@ -6,7 +6,7 @@ import fileTransport from "./transports/file";
 const logger = winston.createLogger({
   format: ecsFormat({ convertReqRes: true }),
   transports: [consoleTransport(), fileTransport()],
-  defaultMeta: { service: "counter-service" }
+  defaultMeta: { "service.name": "counter-service" }
 });
 
 type LogCallback = (
@@ -26,32 +26,44 @@ interface LeveledLogMethod {
 
 class Logger {
   error: LeveledLogMethod = (...params) => {
-    logger.error(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.error(...params);
     return this;
   };
 
   warn: LeveledLogMethod = (...params) => {
-    logger.warn(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.warn(...params);
     return this;
   };
 
   info: LeveledLogMethod = (...params) => {
-    logger.info(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.info(...params);
     return this;
   };
 
   http: LeveledLogMethod = (...params) => {
-    logger.http(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.http(...params);
     return this;
   };
 
   verbose: LeveledLogMethod = (...params) => {
-    logger.verbose(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.verbose(...params);
     return this;
   };
 
   debug: LeveledLogMethod = (...params) => {
-    logger.debug(params);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    logger.debug(...params);
     return this;
   };
 }

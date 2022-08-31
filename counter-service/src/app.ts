@@ -23,19 +23,14 @@ app.use(router);
 app.use((e, _req, res: Response, next) => {
   if (e instanceof BaseError) {
     if (e instanceof InternalServerError) {
-      logger.error("Internal Server Error", e);
+      logger.error(e.message, e);
     }
 
-    logger.warn(e);
+    logger.warn(e.message, e);
     res.status(e.getStatusCode()).json(e.getResponseBody());
   } else {
     logger.error("Unknown Error", e);
   }
-});
-
-app.use((req, res, next) => {
-  logger.info("handled request", { req, res });
-  next();
 });
 
 app.start = async () => {
