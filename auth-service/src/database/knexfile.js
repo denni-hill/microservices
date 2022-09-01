@@ -4,7 +4,7 @@
  * @type { Object.<string, import("knex").Knex.Config> }
  */
 module.exports = {
-  default: {
+  development: {
     client: "pg",
     connection: {
       host: process.env.DATABASE_HOST,
@@ -21,7 +21,7 @@ module.exports = {
       tableName: "knex_migrations"
     }
   },
-  test: {
+  default: {
     client: "pg",
     connection: {
       host: "localhost",

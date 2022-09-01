@@ -1,11 +1,13 @@
 const UserService = require("../service/user.service");
 const NotFoundError = require("../errors/not-found.error");
+const logger = require("../logger");
 
 class UserController {
   async create(req, res, next) {
     try {
       const user = await UserService.createUser(req.body);
       delete user.hash;
+      logger.info("User created", { user });
       return res.status(201).json(user);
     } catch (e) {
       next(e);
@@ -37,6 +39,7 @@ class UserController {
 
     try {
       const user = await UserService.updateUser(req.params.userId, req.body);
+      logger.info("User updated", { user });
       return res.status(200).json(user);
     } catch (e) {
       next(e);
@@ -55,7 +58,9 @@ class UserController {
           },
           "User"
         );
-      else return res.status(200).send();
+
+      logger.info("User deleted", { userId: req.params.userId });
+      return res.status(200).send();
     } catch (e) {
       next(e);
     }

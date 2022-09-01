@@ -1,10 +1,15 @@
 const AuthService = require("../service/auth.service");
 const AuthorizationError = require("../errors/authorization.error");
+const logger = require("../logger");
 
 class AuthController {
   async login(req, res, next) {
     try {
       const { accessToken, refreshToken } = await AuthService.login(req.body);
+      logger.info("User successfull authorization", {
+        email: req.body.email,
+        password_hash: req.body.password_hash
+      });
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
       next(e);
@@ -23,6 +28,7 @@ class AuthController {
         oldAccessToken,
         req.body
       );
+      logger.info("User access token refreshed");
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {
       next(e);
@@ -34,6 +40,7 @@ class AuthController {
       if (req.user === undefined) throw new AuthorizationError();
 
       await AuthService.logout(req.user.accessToken, req.body);
+      logger.info("User logged out");
       return res.status(200).send();
     } catch (e) {
       next(e);

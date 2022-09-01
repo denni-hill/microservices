@@ -14,6 +14,7 @@ services:
     volumes:
       - ./auth-service:/usr/src/app
       - ./.env:/usr/src/services.env/.env:ro
+      - ./logs/auth-service:/usr/service-logs
   counter-service:
     image: node:16-alpine3.14
     container_name: counter_service

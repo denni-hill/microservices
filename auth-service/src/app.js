@@ -4,6 +4,7 @@ const express = require("express");
 const BaseError = require("./errors/base.error");
 const InternalServerError = require("./errors/internal.error");
 const messenger = require("./rabbitmq/messenger");
+const logger = require("./logger");
 
 /**
  * @type { import("express").Application & {
@@ -17,9 +18,12 @@ app.use(router);
 
 app.use((e, req, res, next) => {
   if (e instanceof BaseError) {
-    if (e instanceof InternalServerError) console.log(e.error);
-    else res.status(e.getStatusCode()).json(e.getResponseBody());
-  } else console.log(e);
+    if (e instanceof InternalServerError) logger.info(e.message, e.error);
+    else {
+      logger.info(e.message, e);
+      res.status(e.getStatusCode()).json(e.getResponseBody());
+    }
+  } else logger.error("Unknown error", e);
 });
 
 app.start = async () => {

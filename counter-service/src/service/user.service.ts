@@ -6,6 +6,7 @@ import ValidationError from "../errors/validation.error";
 import authService from "./auth.service";
 import BaseService from "./base.service";
 import messenger from "../rabbitmq/messenger";
+import logger from "../logger";
 
 const UserDTOValidationRules = () => ({
   nickname: build()
@@ -138,10 +139,19 @@ class UserService {
 const userService = new UserService();
 
 messenger.consumeMessages("auth-user-deleted", (msg) => {
+  const authUserId = JSON.parse(msg.content.toString());
   userService
-    .deleteUserByAuthId(JSON.parse(msg.content.toString()))
+    .deleteUserByAuthId(authUserId)
     .then(() => {
-      console.log("user deleted");
+      logger.info("User deleted due to auth-user-deleted event", {
+        authUserId
+      });
+    })
+    .catch((e) => {
+      logger.error(
+        "Error occured during deleting user due to auth-user-delted event",
+        e
+      );
     });
 });
 
