@@ -17,7 +17,7 @@ process.env.AUTH_SERVICE_HOST = "http://localhost/auth";
 import userService from "../../service/user.service";
 import NotFoundError from "../../errors/not-found.error";
 import { defaultDataSource } from "../../database";
-import { User } from "../../database/entities/user";
+import { User } from "../../database/entities/user.entity";
 import messenger from "../../rabbitmq/messenger";
 
 const accessToken = jwt.sign(
@@ -69,7 +69,7 @@ describe("testing user service", () => {
         authUserId: authUser.id
       });
     } catch (e) {
-      console.dir(e.result, { depth: null });
+      console.dir(e, { depth: null });
       throw e;
     }
 
@@ -123,13 +123,10 @@ describe("testing user service", () => {
       expect(e).toBeInstanceOf(NotFoundError);
     }
   });
-
-  test("deletes user in auth service", async () => {
-    await authServiceAxios.delete(`/users/${authUser.id}`);
-  });
 });
 
 afterAll(async () => {
-  await defaultDataSource.destroy();
   await messenger.disconnect();
+  await defaultDataSource.destroy();
+  await authServiceAxios.delete(`/users/${authUser.id}`);
 });

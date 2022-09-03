@@ -2,15 +2,14 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { CounterInvite } from "./counter-invite";
-import { CounterScore } from "./counter-score";
-import { User } from "./user";
+import { CounterInvite } from "./counter-invite.entity";
+import { CounterParticipant } from "./counter-participant.entity";
+import { CounterScore } from "./counter-score.entity";
+import { User } from "./user.entity";
 
 @Entity({ name: "counters" })
 export class Counter {
@@ -29,22 +28,8 @@ export class Counter {
   @Column()
   image: string;
 
-  @ManyToMany(() => User, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE"
-  })
-  @JoinTable({
-    name: "counters__participants",
-    joinColumn: {
-      name: "counter_id",
-      referencedColumnName: "id"
-    },
-    inverseJoinColumn: {
-      name: "user_id",
-      referencedColumnName: "id"
-    }
-  })
-  participants: User[];
+  @OneToMany(() => CounterParticipant, (participant) => participant.counter)
+  participants: CounterParticipant[];
 
   @OneToMany(() => CounterScore, (score) => score.counter)
   @JoinColumn()

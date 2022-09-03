@@ -1,12 +1,13 @@
-import { CounterInvite } from "../database/entities/counter-invite";
+import { CounterInvite } from "../database/entities/counter-invite.entity";
 import BaseService from "./base.service";
 
-import counterDAO from "../dao/counter";
-import userDAO from "../dao/user";
-import counterInviteDAO from "../dao/counter-invite";
+import counterDAO from "../dao/counter.dao";
+import userDAO from "../dao/user.dao";
+import counterInviteDAO from "../dao/counter-invite.dao";
 import { build, validate } from "chain-validator-js";
 import ValidationError from "../errors/validation.error";
 import NotFoundError from "../errors/not-found.error";
+import { Id } from "../dao/id";
 
 async function parseNicknameDigits(
   nicknameDigits: string
@@ -54,45 +55,32 @@ class CounterInviteService {
       BaseService.validateId(fromUserId)
     ])[0];
 
-    const [counter, fromUser, toUser] = await Promise.all([
-      counterDAO.findOne({ where: { id: counterId } }).then((counter) => {
+    const [counter, user] = await Promise.all([
+      counterDAO.findOne(counterId).then((counter) => {
         if (counter === undefined)
           throw new NotFoundError({ id: counterId }, "Counter");
-        return counter;
+        return counter[0];
       }),
-      userDAO.findOne({ where: { id: fromUserId } }).then((fromUser) => {
-        if (fromUser === undefined)
-          throw new NotFoundError({ id: fromUserId }, "User-sender");
-        return fromUser;
-      }),
-      userDAO
-        .findOne({
-          where: {
-            nickname,
-            digits
-          }
-        })
-        .then((toUser) => {
-          if (toUser === undefined)
-            throw new NotFoundError({ toUserNicknameDigits }, "User-reciever");
-          return toUser;
-        })
+      userDAO.findByNicknameDigits(nickname, digits).then((toUser) => {
+        if (toUser === undefined)
+          throw new NotFoundError({ toUserNicknameDigits }, "User-reciever");
+        return toUser;
+      })
     ]);
 
     return await counterInviteDAO.create({
       counter,
-      from: fromUser,
-      to: toUser
+      user: user
     });
   }
 
-  async deleteInvite(inviteId: number) {
+  async deleteInvite(inviteId: Id) {
     await BaseService.validateId(inviteId);
 
-    if (!(await counterInviteDAO.isExist({ where: { id: inviteId } })))
+    if (!(await counterInviteDAO.isExist(inviteId)))
       throw new NotFoundError({ id: inviteId }, "Invite");
 
-    return await counterInviteDAO.delete({ where: { id: inviteId } });
+    return await counterInviteDAO.delete(inviteId);
   }
 }
 

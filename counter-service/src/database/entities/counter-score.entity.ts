@@ -5,8 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { Counter } from "./counter";
-import { User } from "./user";
+import { Counter } from "./counter.entity";
+import { User } from "./user.entity";
 
 @Entity({ name: "counters__scores" })
 export class CounterScore {

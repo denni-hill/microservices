@@ -1,5 +1,6 @@
 import Axios from "axios";
 import jwt from "jsonwebtoken";
+import { Id } from "../dao/id";
 import InternalServerError from "../errors/internal.error";
 import BaseService from "./base.service";
 
@@ -43,7 +44,7 @@ class AuthService {
     }
   }
 
-  async isAuthUserExist(authUserId: number): Promise<boolean> {
+  async isAuthUserExist(authUserId: Id): Promise<boolean> {
     await BaseService.validateId(authUserId);
 
     try {

@@ -1,4 +1,4 @@
-type User = import("./database/entities/user").User;
+type User = import("./database/entities/user.entity").User;
 
 interface AuthUserData {
   id: number;

@@ -14,5 +14,7 @@ export const defaultDataSource = new DataSource({
   password,
   database,
   synchronize: true,
-  entities: [path.join(process.cwd(), "build", "database", "entities", "*.js")]
+  entities: [
+    path.join(process.cwd(), "build", "database", "entities", "*.entity.js")
+  ]
 });

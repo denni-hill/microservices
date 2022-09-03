@@ -1,12 +1,13 @@
 import { build, validate } from "chain-validator-js";
-import UserDAO from "../dao/user";
-import { User } from "../database/entities/user";
+import userDAO from "../dao/user.dao";
+import { User } from "../database/entities/user.entity";
 import NotFoundError from "../errors/not-found.error";
 import ValidationError from "../errors/validation.error";
 import authService from "./auth.service";
-import BaseService from "./base.service";
+import baseService from "./base.service";
 import messenger from "../rabbitmq/messenger";
 import logger from "../logger";
+import { Id } from "../dao/id";
 
 const UserDTOValidationRules = () => ({
   nickname: build()
@@ -27,7 +28,7 @@ const createUniqueNicknameDigits = async (
 ): Promise<string> => {
   const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
   let digits = random(1000, 10000);
-  while (await UserDAO.isExist({ where: { nickname, digits } })) {
+  while (await userDAO.isNicknameDigitsPairExist(nickname, digits)) {
     digits = random(1000, 10000);
   }
 
@@ -44,10 +45,10 @@ class UserService {
           .bail()
           .custom(() => authService.isAuthUserExist)
           .withMessage("Auth user does not exist")
-          .bail()
-          .not()
-          .custom(() => UserDAO.isAuthUserIdRegistered)
-          .withMessage("Auth user id is already registered in counter service"),
+          .bail(),
+        // .not()
+        // .custom(() => userDAO.isAuthUserIdRegistered)
+        // .withMessage("Auth user id is already registered in counter service"),
         ...UserDTOValidationRules()
       })
     );
@@ -58,13 +59,13 @@ class UserService {
       validationResult.validated.nickname
     );
 
-    return await UserDAO.create(validationResult.validated);
+    return await userDAO.create(validationResult.validated);
   }
 
-  async updateUser(userId: number, userDTO: Partial<User>): Promise<User> {
-    await BaseService.validateId(userId);
+  async updateUser(userId: Id, userDTO: Partial<User>): Promise<User> {
+    await baseService.validateId(userId);
 
-    if (!(await UserDAO.isExist({ where: { id: userId } })))
+    if (!(await userDAO.isExist(userId)))
       throw new NotFoundError({ id: userId }, "User");
 
     const validationResult = await validate(
@@ -78,57 +79,34 @@ class UserService {
       validationResult.validated.nickname
     );
 
-    return (
-      await UserDAO.update(
-        {
-          where: {
-            id: userId
-          }
-        },
-        validationResult.validated
-      )
-    )[0];
+    return (await userDAO.update(userId, validationResult.validated))[0];
   }
 
-  async deleteUser(userId: number): Promise<number> {
-    await BaseService.validateId(userId);
+  async deleteUser(userId: Id): Promise<number> {
+    await baseService.validateId(userId);
 
-    return await UserDAO.delete({
-      where: {
-        id: userId
-      }
-    });
+    return await userDAO.delete(userId);
   }
 
-  async deleteUserByAuthId(authUserId: number): Promise<number> {
-    await BaseService.validateId(authUserId);
+  async deleteUserByAuthId(authUserId: Id): Promise<number> {
+    await baseService.validateId(authUserId);
 
-    return await UserDAO.delete({
-      where: { authUserId }
-    });
+    return await userDAO.deleteByAuthUserId(authUserId);
   }
 
-  async getUser(userId: number): Promise<User> {
-    await BaseService.validateId(userId);
+  async getUser(userId: Id): Promise<User> {
+    await baseService.validateId(userId);
 
-    const user = await UserDAO.findOne({
-      where: {
-        id: userId
-      }
-    });
+    const user = await userDAO.findOne(userId);
 
     if (user === undefined) throw new NotFoundError({ id: userId }, "User");
     return user;
   }
 
-  async getUserByUserAuthId(authUserId: number): Promise<User> {
-    await BaseService.validateId(authUserId);
+  async getUserByUserAuthId(authUserId: Id): Promise<User> {
+    await baseService.validateId(authUserId);
 
-    const user = await UserDAO.findOne({
-      where: {
-        authUserId
-      }
-    });
+    const user = await userDAO.findByAuthUserId(authUserId);
 
     if (user === undefined) throw new NotFoundError({ authUserId }, "User");
 
