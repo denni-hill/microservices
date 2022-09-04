@@ -43,12 +43,12 @@ class UserService {
         authUserId: build()
           .isInt()
           .bail()
-          .custom(() => authService.isAuthUserExist)
+          .custom(() => (id: Id) => authService.isAuthUserExist(id))
           .withMessage("Auth user does not exist")
-          .bail(),
-        // .not()
-        // .custom(() => userDAO.isAuthUserIdRegistered)
-        // .withMessage("Auth user id is already registered in counter service"),
+          .bail()
+          .not()
+          .custom(() => (id: Id) => userDAO.isAuthUserIdRegistered(id))
+          .withMessage("Auth user id is already registered in counter service"),
         ...UserDTOValidationRules()
       })
     );
