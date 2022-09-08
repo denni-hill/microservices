@@ -12,7 +12,7 @@ class UserDAO extends BaseDAO<User> {
   protected readonly alias = "User";
   protected readonly entityClass = User;
 
-  async update(
+  override async update(
     id: Id,
     data: DeepPartial<User>,
     throwErrorsOptions = new DefaultThrowErrorsOptions()

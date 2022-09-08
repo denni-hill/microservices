@@ -49,7 +49,7 @@ export const auth =
         ...user
       };
     } catch (e) {
-      next(e);
+      return next(e);
     }
 
     next();

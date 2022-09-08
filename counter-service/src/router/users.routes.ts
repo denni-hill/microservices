@@ -1,3 +1,4 @@
+import { json } from "body-parser";
 import { Router } from "express";
 import userController from "../controllers/user.controller";
 import { auth } from "../middleware/auth.middleware";
@@ -8,13 +9,44 @@ const router = Router();
 router.post(
   "/",
   auth({ onlyCheckAccessToken: true }),
+  json(),
+  isAdmin,
   userController.createUser
 );
 
-router.patch("/:userId", auth(), isAdmin, userController.updateUser);
+router.post(
+  "/register",
+  auth({ onlyCheckAccessToken: true }),
+  json(),
+  (req, _res, next) => {
+    req.body.authUserId = req.user.auth.id;
+    next();
+  },
+  userController.createUser
+);
 
-router.delete("/:userId", auth(), isAdmin, userController.deleteUser);
+router.put(
+  "/:userId",
+  auth(),
+  isAdmin,
+  json(),
+  userController.updateUser("userId")
+);
 
-router.get("/:userId", auth(), isAdmin, userController.getUser);
+router.delete(
+  "/:userId",
+  auth(),
+  isAdmin,
+  json(),
+  userController.deleteUser("userId")
+);
+
+router.get(
+  "/:userId",
+  auth(),
+  isAdmin,
+  json(),
+  userController.getUser("userId")
+);
 
 export default router;

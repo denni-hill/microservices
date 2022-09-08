@@ -7,7 +7,7 @@ export const isAdmin: Handler = (req, res, next) => {
     if (req.user === undefined) throw new AuthorizationError();
     if (req.user.isAdmin !== true) throw new ForbiddenError();
   } catch (e) {
-    next(e);
+    return next(e);
   }
 
   next();

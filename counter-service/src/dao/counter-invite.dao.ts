@@ -38,6 +38,29 @@ class CounterInviteDAO extends BaseDAO<CounterInvite> {
     logger.info("Counter invite was accepted", { invite });
     return newParticipant;
   }
+
+  async isInviteOwner(inviteId: Id, userId: Id): Promise<boolean> {
+    await Promise.all([this.validateId(inviteId), this.validateId(userId)]);
+
+    try {
+      return (
+        (await this.repository.count({
+          where: {
+            id: inviteId,
+            user: {
+              id: userId
+            }
+          }
+        })) > 0
+      );
+    } catch (e) {
+      throw new InternalServerError(
+        "Could not check if user is invite owner",
+        e,
+        { inviteId, userId }
+      );
+    }
+  }
 }
 
 export default new CounterInviteDAO();

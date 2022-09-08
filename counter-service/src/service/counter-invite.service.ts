@@ -31,8 +31,12 @@ class CounterInviteService {
     return await counterInviteDAO.acceptInvite(inviteId);
   }
 
-  async deleteInvite(inviteId: Id) {
+  async deleteInvite(inviteId: Id): Promise<number> {
     return await counterInviteDAO.delete(inviteId, { notFound: true });
+  }
+
+  async isInviteOwner(inviteId: Id, userId: Id): Promise<boolean> {
+    return await counterInviteDAO.isInviteOwner(inviteId, userId);
   }
 
   protected async parseNicknameDigits(

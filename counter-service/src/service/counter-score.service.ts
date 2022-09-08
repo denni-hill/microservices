@@ -67,6 +67,10 @@ class CounterScoreService {
   async doesUserHaveScores(userId: Id): Promise<boolean> {
     return (await counterScoreDAO.getUserScoresCount(userId)) > 0;
   }
+
+  async isScoreAuthor(scoreId: Id, userId: Id): Promise<boolean> {
+    return await counterScoreDAO.isScoreAuthor(scoreId, userId);
+  }
 }
 
 export default new CounterScoreService();

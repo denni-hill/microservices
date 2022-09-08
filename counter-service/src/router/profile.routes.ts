@@ -1,3 +1,4 @@
+import { json } from "body-parser";
 import { Handler, Router } from "express";
 import userController from "../controllers/user.controller";
 import { auth } from "../middleware/auth.middleware";
@@ -9,10 +10,22 @@ const userIdMocker: Handler = (req, res, next) => {
   next();
 };
 
-router.get("/", auth(), userIdMocker, userController.getUser);
+router.put(
+  "/",
+  auth(),
+  json(),
+  userIdMocker,
+  userController.updateUser("userId")
+);
 
-router.delete("/", auth(), userIdMocker, userController.deleteUser);
+router.get("/", auth(), json(), userIdMocker, userController.getUser("userId"));
 
-router.patch("/", auth(), userIdMocker, userController.updateUser);
+router.delete(
+  "/",
+  auth(),
+  json(),
+  userIdMocker,
+  userController.deleteUser("userId")
+);
 
 export default router;

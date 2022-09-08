@@ -26,6 +26,29 @@ class CounterScoreDAO extends BaseDAO<CounterScore> {
       );
     }
   }
+
+  async isScoreAuthor(scoreId: Id, userId: Id): Promise<boolean> {
+    await Promise.all([this.validateId(scoreId), this.validateId(userId)]);
+
+    try {
+      return (
+        (await this.repository.count({
+          where: {
+            id: scoreId,
+            from: {
+              id: userId
+            }
+          }
+        })) > 0
+      );
+    } catch (e) {
+      throw new InternalServerError(
+        "Could not check if user is score author in database",
+        e,
+        { scoreId, userId }
+      );
+    }
+  }
 }
 
 export default new CounterScoreDAO();

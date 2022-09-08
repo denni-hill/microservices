@@ -61,7 +61,10 @@ class UserService {
       validationResult.validated.nickname
     );
 
-    return await userDAO.create(validationResult.validated);
+    const user = await userDAO.create(validationResult.validated);
+
+    messenger.sendMessage("counter-user-created", { user });
+    return user;
   }
 
   async updateUser(userId: Id, userDTO: Partial<User>): Promise<User> {

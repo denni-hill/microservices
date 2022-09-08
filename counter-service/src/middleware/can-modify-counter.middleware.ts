@@ -1,25 +1,26 @@
 import { Handler } from "express";
-import counterDAO from "../dao/counter.dao";
 import AuthorizationError from "../errors/authorization.error";
 import ForbiddenError from "../errors/forbidden.error";
+import counterService from "../service/counter.service";
 
 export const canModifyCounter: { (counterIdParamKey: string): Handler } =
   (counterIdParamKey): Handler =>
-  async (req, res, next) => {
+  async (req, _res, next) => {
     try {
       if (req.user === undefined) throw new AuthorizationError();
       if (
         req.user.isAdmin !== true ||
-        !(await counterDAO.isCounterOwner(
-          Number(req.user.id),
+        !(await counterService.isUserCounterOwner(
+          req.user.id,
           Number(req.params[counterIdParamKey])
         ))
       )
         throw new ForbiddenError(
           "You don't have rights to access this counter"
         );
-      return next();
     } catch (e) {
-      next(e);
+      return next(e);
     }
+
+    next();
   };
