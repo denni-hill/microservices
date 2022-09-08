@@ -10,7 +10,7 @@ router.post("/", auth());
 router.patch(
   "/:counterId",
   auth(),
-  canModifyCounter,
+  canModifyCounter("counterId"),
   counterController.updateCounter
 );
 

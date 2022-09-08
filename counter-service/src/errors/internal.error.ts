@@ -1,15 +1,20 @@
+import logger from "../logger";
 import BaseError from "./base.error";
 
 class InternalServerError extends BaseError {
-  error: Error;
-
-  constructor(message: string, error: Error) {
+  constructor(
+    message: string,
+    public error: Error,
+    public params?: Record<string, unknown>
+  ) {
     super(message);
-    this.error = error;
   }
 
   getResponseBody = () => "Internal Server Error";
   getStatusCode = () => 500;
+  logError(): void {
+    logger.error(this.message, this.error, this.params);
+  }
 }
 
 export default InternalServerError;

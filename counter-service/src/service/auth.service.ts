@@ -2,7 +2,7 @@ import Axios from "axios";
 import jwt from "jsonwebtoken";
 import { Id } from "../dao/id";
 import InternalServerError from "../errors/internal.error";
-import BaseService from "./base.service";
+import { validateId } from "../misc/validate-id";
 
 const authServiceAxios = Axios.create({
   baseURL: process.env.AUTH_SERVICE_HOST,
@@ -21,6 +21,8 @@ const authServiceAxios = Axios.create({
 });
 
 class AuthService {
+  protected validateId: { (id: Id): Promise<void> } = validateId;
+
   async isAccessTokenValid(accessToken: string): Promise<boolean> {
     try {
       jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
@@ -29,13 +31,17 @@ class AuthService {
     }
 
     try {
-      await authServiceAxios.post("/service-check", accessToken, {
-        headers: {
-          "content-type": "text/plain"
+      const response = await authServiceAxios.post(
+        "/service-check",
+        accessToken,
+        {
+          headers: {
+            "content-type": "text/plain"
+          }
         }
-      });
+      );
 
-      return true;
+      return response.data === true;
     } catch (e) {
       throw new InternalServerError(
         "Could not check if access token valid in auth service",
@@ -45,7 +51,7 @@ class AuthService {
   }
 
   async isAuthUserExist(authUserId: Id): Promise<boolean> {
-    await BaseService.validateId(authUserId);
+    await this.validateId(authUserId);
 
     try {
       return (

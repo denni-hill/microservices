@@ -20,15 +20,15 @@ export class CounterScore {
   @JoinColumn()
   counter: Counter;
 
-  @ManyToOne(() => User, {
-    onDelete: "CASCADE",
+  @ManyToOne(() => User, (participant) => participant, {
+    onDelete: "RESTRICT",
     onUpdate: "CASCADE"
   })
   @JoinColumn()
   from: User;
 
-  @ManyToOne(() => User, {
-    onDelete: "CASCADE",
+  @ManyToOne(() => User, (user) => user, {
+    onDelete: "RESTRICT",
     onUpdate: "CASCADE"
   })
   @JoinColumn()

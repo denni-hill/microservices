@@ -16,14 +16,16 @@ export class CounterInvite {
 
   @ManyToOne(() => Counter, (counter) => counter.invites, {
     onDelete: "CASCADE",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
+    eager: true
   })
   @JoinColumn()
   counter: Counter;
 
   @ManyToOne(() => User, (user) => user.invites, {
     onDelete: "CASCADE",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
+    eager: true
   })
   @JoinColumn()
   user: User;

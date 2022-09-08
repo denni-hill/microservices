@@ -8,8 +8,12 @@ export interface AuthMiddlewareOptions {
   onlyCheckAccessToken: boolean;
 }
 
-export const auth: (options?: AuthMiddlewareOptions) => Handler =
-  (options = { onlyCheckAccessToken: false }) =>
+export class DefaultAuthMiddlewareOptions implements AuthMiddlewareOptions {
+  onlyCheckAccessToken = false;
+}
+
+export const auth =
+  (options = new DefaultAuthMiddlewareOptions()): Handler =>
   async (req, res, next) => {
     try {
       const authorizationHeader = req.headers["authorization"];
@@ -22,18 +26,14 @@ export const auth: (options?: AuthMiddlewareOptions) => Handler =
         );
 
       const accessToken = authorizationHeader.replace("Bearer ", "");
-      let authUserData: AuthUserData;
-      try {
-        authUserData = jwt.verify(
-          accessToken,
-          process.env.ACCESS_TOKEN_SECRET
-        ) as AuthUserData;
-      } catch {
-        throw new AuthorizationError("Access token is invalid");
-      }
 
       if (!(await authService.isAccessTokenValid(accessToken)))
         throw new AuthorizationError();
+
+      const authUserData: AuthUserData = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET
+      ) as AuthUserData;
 
       let user: User = undefined;
       if (!options.onlyCheckAccessToken) {

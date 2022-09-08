@@ -3,12 +3,14 @@ import {
   Entity,
   JoinColumn,
   OneToMany,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  Unique
 } from "typeorm";
 import { CounterInvite } from "./counter-invite.entity";
 import { CounterParticipant } from "./counter-participant.entity";
 
 @Entity({ name: "users" })
+@Unique(["nickname", "digits"])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -29,9 +31,13 @@ export class User {
   sex: boolean;
 
   @OneToMany(() => CounterParticipant, (participant) => participant.user)
+  @JoinColumn()
   counters: CounterParticipant[];
 
   @OneToMany(() => CounterInvite, (invite) => invite.user)
   @JoinColumn()
   invites: CounterInvite[];
+
+  @Column({ default: false })
+  isDeleted: boolean;
 }

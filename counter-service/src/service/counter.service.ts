@@ -1,9 +1,7 @@
 import { build, validate } from "chain-validator-js";
 import { Counter } from "../database/entities/counter.entity";
 import ValidationError from "../errors/validation.error";
-import BaseService from "./base.service";
 import counterDAO from "../dao/counter.dao";
-import NotFoundError from "../errors/not-found.error";
 import userService from "./user.service";
 import userDAO from "../dao/user.dao";
 import counterParticipantDAO from "../dao/counter-participant.dao";
@@ -42,58 +40,47 @@ class CounterService {
     counterId: Id,
     counterDTO: Partial<Counter>
   ): Promise<Counter> {
-    await BaseService.validateId(counterId);
-
-    if (!(await counterDAO.isExist(counterId)))
-      throw new NotFoundError({ id: counterId }, "Counter");
-
     const validationResult = await validate(
       counterDTO,
       CounterDTOValidationRules()
     );
+    await counterDAO.findOne(counterId, { notFound: true });
 
     if (validationResult.failed) throw new ValidationError(validationResult);
 
-    return await counterDAO.update(counterId, validationResult.validated)[0];
+    return await counterDAO.update(counterId, validationResult.validated, {
+      notFound: true
+    });
   }
 
   async deleteCounter(counterId: Id): Promise<number> {
-    await BaseService.validateId(counterId);
+    await counterDAO.findOne(counterId, { notFound: true });
 
-    if (!(await counterDAO.isExist(counterId)))
-      throw new NotFoundError({ id: counterId }, "Counter");
-
-    return await counterDAO.delete(counterId);
+    return await counterDAO.delete(counterId, { notFound: true });
   }
 
   async getCounter(counterId: Id): Promise<Counter> {
-    await BaseService.validateId(counterId);
+    return await counterDAO.findOne(counterId, { notFound: true });
+  }
 
-    const counter = await counterDAO.findOne(counterId);
-
-    if (counter === undefined)
-      throw new NotFoundError({ id: counterId }, "Counter");
-
-    return counter;
+  async isUserCounterOwner(userId: Id, counterId: Id): Promise<boolean> {
+    return counterDAO.isCounterOwner(userId, counterId);
   }
 
   async addParticipant(counterId: Id, userId: Id) {
     const [counter, user] = await Promise.all([
-      counterDAO.findOne(counterId).then((counter) => {
-        if (counter === undefined)
-          throw new NotFoundError({ id: counterId }, "Counter");
-        return counter;
-      }),
-      userDAO.findOne(userId).then((user) => {
-        if (user === undefined) throw new NotFoundError({ id: userId }, "User");
-        return user;
-      })
+      counterDAO.findOne(counterId, { notFound: true }),
+      userDAO.findOne(userId, { notFound: true })
     ]);
 
     counterParticipantDAO.create({
       counter,
       user
     });
+  }
+
+  async removeParticipant(counterId: Id, userId: Id) {
+    return counterParticipantDAO.deleteByCounterIdUserId(counterId, userId);
   }
 }
 
