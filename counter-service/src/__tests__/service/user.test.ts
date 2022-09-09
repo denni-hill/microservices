@@ -89,12 +89,12 @@ describe("testing user service", () => {
   });
 
   test("deletes user in counter service", async () => {
-    expect(await userService.deleteUser(counterUser.id)).toBe(1);
+    expect(await userService.deleteUser(counterUser.id, false)).toBe(1);
   });
 
   test("deletes unexisting user in counter service", async () => {
     try {
-      await userService.deleteUser(counterUser.id);
+      await userService.deleteUser(counterUser.id, false);
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundError);
     }
@@ -110,7 +110,7 @@ describe("testing user service", () => {
   });
 
   test("deletes user in counter service by auth user id", async () => {
-    expect(await userService.deleteUserByAuthId(authUser.id)).toBe(1);
+    expect(await userService.deleteUserByAuthId(authUser.id, false)).toBe(1);
 
     try {
       await userService.getUser(counterUser.id);

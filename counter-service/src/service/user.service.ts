@@ -86,12 +86,18 @@ class UserService {
     });
   }
 
-  async deleteUser(userId: Id): Promise<number> {
-    return await userDAO.delete(userId, { notFound: true });
+  async deleteUser(userId: Id, soft = true): Promise<number> {
+    if (soft) return await userDAO.softDelete(userId, { notFound: true });
+    else return await userDAO.delete(userId, { notFound: true });
   }
 
-  async deleteUserByAuthId(authUserId: Id): Promise<number> {
-    return await userDAO.deleteByAuthUserId(authUserId, { notFound: true });
+  async deleteUserByAuthId(authUserId: Id, soft = true): Promise<number> {
+    if (soft)
+      return await userDAO.softDeleteByAuthUserId(authUserId, {
+        notFound: true
+      });
+    else
+      return await userDAO.deleteByAuthUserId(authUserId, { notFound: true });
   }
 
   async getUser(userId: Id): Promise<User> {

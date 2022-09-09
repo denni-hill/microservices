@@ -4,11 +4,15 @@ import InternalServerError from "../errors/internal.error";
 import NotFoundError from "../errors/not-found.error";
 import ValidationError from "../errors/validation.error";
 import logger from "../logger";
-import { BaseDAO, DefaultThrowErrorsOptions } from "./base.dao";
+import {
+  BaseDAO,
+  CanSoftDeleteDAO,
+  DefaultThrowErrorsOptions
+} from "./base.dao";
 import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
-class UserDAO extends BaseDAO<User> {
+class UserDAO extends BaseDAO<User> implements CanSoftDeleteDAO<User> {
   protected readonly alias = "User";
   protected readonly entityClass = User;
 
@@ -126,33 +130,21 @@ class UserDAO extends BaseDAO<User> {
     authUserId: Id,
     throwErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<number> {
-    await this.validateId(authUserId);
-
-    let affectedRowsCount: number;
-
-    try {
-      affectedRowsCount = (
-        await this.repository.update({ authUserId }, { isDeleted: true })
-      ).affected;
-    } catch (e) {
-      throw new InternalServerError(
-        `Could not soft delete ${this.alias} by auth user id in database`,
-        e,
-        { authUserId }
-      );
-    }
-
-    if (throwErrorsOptions.notFound && affectedRowsCount === 0)
-      throw new NotFoundError({ authUserId }, this.alias);
-
-    logger.info("User was soft deleted by auth user id", { authUserId });
-
-    return affectedRowsCount;
+    const user = await this.findByAuthUserId(authUserId, throwErrorsOptions);
+    return await this.delete(user.id, throwErrorsOptions);
   }
 
-  override async delete(
+  async softDeleteByAuthUserId(
+    authUserId: Id,
+    throwErrorsOptions = new DefaultThrowErrorsOptions()
+  ): Promise<number> {
+    const user = await this.findByAuthUserId(authUserId, throwErrorsOptions);
+    return await this.softDelete(user.id, throwErrorsOptions);
+  }
+
+  async softDelete(
     id: Id,
-    throwErrorsOptions?: DefaultThrowErrorsOptions
+    throwErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<number> {
     await this.validateId(id);
 
@@ -160,11 +152,14 @@ class UserDAO extends BaseDAO<User> {
 
     try {
       affectedRowsCount = (
-        await this.repository.update({ id }, { isDeleted: true })
+        await this.repository.update(
+          { id, isDeleted: false },
+          { isDeleted: true }
+        )
       ).affected;
     } catch (e) {
       throw new InternalServerError(
-        `Could not soft delete ${this.alias} in database`,
+        `Could not soft delete ${this.alias} by auth user id in database`,
         e,
         { id }
       );
@@ -173,7 +168,38 @@ class UserDAO extends BaseDAO<User> {
     if (throwErrorsOptions.notFound && affectedRowsCount === 0)
       throw new NotFoundError({ id }, this.alias);
 
-    logger.info("User was soft deleted", { id });
+    logger.info(`${this.alias} was soft deleted`, { id });
+
+    return affectedRowsCount;
+  }
+
+  async restore(
+    id: number,
+    throwErrorsOptions = new DefaultThrowErrorsOptions()
+  ): Promise<number> {
+    await this.validateId(id);
+
+    let affectedRowsCount: number;
+
+    try {
+      affectedRowsCount = (
+        await this.repository.update(
+          { id, isDeleted: true },
+          { isDeleted: false }
+        )
+      ).affected;
+    } catch (e) {
+      throw new InternalServerError(
+        `Could not restore ${this.alias} by auth user id in database`,
+        e,
+        { id }
+      );
+    }
+
+    if (throwErrorsOptions.notFound && affectedRowsCount === 0)
+      throw new NotFoundError({ id }, this.alias);
+
+    logger.info(`${this.alias} was restored`, { id });
 
     return affectedRowsCount;
   }

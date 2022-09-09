@@ -25,6 +25,11 @@ export interface CanDeleteDAO {
   delete(id: Id, throwErrorsOptions?: ThrowErrorsOptions): Promise<number>;
 }
 
+export interface CanSoftDeleteDAO {
+  softDelete(id: Id, throwErrorsOptions?: ThrowErrorsOptions): Promise<number>;
+  restore(id: Id, throwErrorsOptions?: ThrowErrorsOptions): Promise<number>;
+}
+
 export interface CanFindDAO<T> {
   findOne(id: Id, throwErrorsOptions?: ThrowErrorsOptions): Promise<T>;
 }
