@@ -13,6 +13,6 @@ router.post("/check", auth, (_req, res) => {
   res.status(200).send();
 });
 
-router.post("/service-check", text(), AuthController.checkAccessToken);
+router.post("/service-check", auth, text(), AuthController.checkAccessToken);
 
 module.exports = router;
