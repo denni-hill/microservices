@@ -12,7 +12,7 @@ import {
 import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
-class UserDAO extends BaseDAO<User> implements CanSoftDeleteDAO<User> {
+class UserDAO extends BaseDAO<User> implements CanSoftDeleteDAO {
   protected readonly alias = "User";
   protected readonly entityClass = User;
 
