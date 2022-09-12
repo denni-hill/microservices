@@ -16,7 +16,10 @@ export class Counter {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+  })
   owner: User;
 
   @Column()
@@ -24,9 +27,6 @@ export class Counter {
 
   @Column()
   description: string;
-
-  @Column()
-  image: string;
 
   @OneToMany(() => CounterParticipant, (participant) => participant.counter)
   participants: CounterParticipant[];

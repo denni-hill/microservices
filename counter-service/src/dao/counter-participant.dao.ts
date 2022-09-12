@@ -1,13 +1,24 @@
 import { CounterParticipant } from "../database/entities/counter-participant.entity";
+import { ConflictError } from "../errors/conflict.error";
 import InternalServerError from "../errors/internal.error";
 import NotFoundError from "../errors/not-found.error";
 import logger from "../logger";
 import { BaseDAO, DefaultThrowErrorsOptions } from "./base.dao";
+import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
 class CounterParticipantDAO extends BaseDAO<CounterParticipant> {
   protected readonly alias = "CounterParticipant";
   protected readonly entityClass = CounterParticipant;
+
+  override async create(
+    data: DeepPartial<CounterParticipant>
+  ): Promise<CounterParticipant> {
+    if (await this.isExistByCounterIdUserId(data.counter.id, data.user.id))
+      throw new ConflictError("User is already participates in this counter!");
+
+    return super.create(data);
+  }
 
   async isExistByCounterIdUserId(counterId: Id, userId: Id): Promise<boolean> {
     await Promise.all([this.validateId(counterId), this.validateId(userId)]);

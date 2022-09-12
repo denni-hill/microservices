@@ -16,6 +16,7 @@ export default function consoleTransport() {
       }),
       winston.format.timestamp()
     ),
-    handleExceptions: true
+    handleExceptions: true,
+    level: process.env.NODE_ENV === "test" ? "debug" : "info"
   });
 }

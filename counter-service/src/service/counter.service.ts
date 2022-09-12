@@ -6,48 +6,61 @@ import userService from "./user.service";
 import userDAO from "../dao/user.dao";
 import counterParticipantDAO from "../dao/counter-participant.dao";
 import { Id } from "../dao/id";
+import ForbiddenError from "../errors/forbidden.error";
+import { CounterParticipant } from "../database/entities/counter-participant.entity";
 
 const CounterDTOValidationRules = () => ({
   name: build().isString().bail().trim().isLength({ min: 2, max: 128 }),
-  description: build().isString().bail().trim().isLength({ min: 0, max: 1024 })
+  description: build().isString().bail().trim().isLength({ min: 0, max: 1024 }),
+  owner: build()
+    .isInt()
+    .bail()
+    .customSanitizer(() => async (id: Id) => userService.getUser(id))
 });
 
+export interface CounterDTO {
+  name: string;
+  description: string;
+  owner: number;
+}
+
 class CounterService {
-  async createCounter(counterDTO: Partial<Counter>): Promise<Counter> {
-    const validationResult = await validate(
-      counterDTO,
-      build().schema({
-        ...CounterDTOValidationRules(),
-        owner: build()
-          .isInt()
-          .bail()
-          .customSanitizer(() => async (id: Id) => userService.getUser(id))
-      })
-    );
-
-    if (validationResult.failed) throw new ValidationError(validationResult);
-
-    return await counterDAO.create({
-      ...validationResult.validated,
-      participants: [validationResult.validated.owner]
-    });
-  }
-
-  async updateCounter(
-    counterId: Id,
-    counterDTO: Partial<Counter>
-  ): Promise<Counter> {
+  async createCounter(counterDTO: CounterDTO): Promise<Counter> {
     const validationResult = await validate(
       counterDTO,
       build().schema(CounterDTOValidationRules())
     );
-    await counterDAO.findOne(counterId, { notFound: true });
 
     if (validationResult.failed) throw new ValidationError(validationResult);
 
-    return await counterDAO.update(counterId, validationResult.validated, {
-      notFound: true
+    const counter = await counterDAO.create({
+      ...validationResult.validated
     });
+
+    await this.addParticipant(counter.id, counterDTO.owner);
+
+    return counter;
+  }
+
+  async updateCounter(counterId: Id, counterDTO: CounterDTO): Promise<Counter> {
+    const validationResult = await validate(
+      counterDTO,
+      build().schema(CounterDTOValidationRules())
+    );
+    if (validationResult.failed) throw new ValidationError(validationResult);
+
+    const counter = await counterDAO.update(
+      counterId,
+      validationResult.validated,
+      {
+        notFound: true
+      }
+    );
+
+    if (!(await this.isUserCounterParticipant(counter.owner.id, counterId)))
+      await this.addParticipant(counter.id, counter.owner.id);
+
+    return counter;
   }
 
   async deleteCounter(counterId: Id): Promise<number> {
@@ -68,20 +81,25 @@ class CounterService {
     return counterParticipantDAO.isExistByCounterIdUserId(counterId, userId);
   }
 
-  async addParticipant(counterId: Id, userId: Id) {
+  async addParticipant(counterId: Id, userId: Id): Promise<CounterParticipant> {
     const [counter, user] = await Promise.all([
       counterDAO.findOne(counterId, { notFound: true }),
       userDAO.findOne(userId, { notFound: true })
     ]);
 
-    counterParticipantDAO.create({
+    return await counterParticipantDAO.create({
       counter,
       user
     });
   }
 
   async removeParticipant(counterId: Id, userId: Id) {
-    return counterParticipantDAO.deleteByCounterIdUserId(counterId, userId);
+    if (await counterDAO.isCounterOwner(userId, counterId))
+      throw new ForbiddenError("User is counter owner");
+
+    return counterParticipantDAO.deleteByCounterIdUserId(counterId, userId, {
+      notFound: true
+    });
   }
 }
 

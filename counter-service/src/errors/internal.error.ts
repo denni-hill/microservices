@@ -14,6 +14,7 @@ class InternalServerError extends BaseError {
   getStatusCode = () => 500;
   logError(): void {
     logger.error(this.message, this.error, this.params);
+    logger.debug(this.error);
   }
 }
 
