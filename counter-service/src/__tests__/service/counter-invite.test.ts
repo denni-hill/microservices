@@ -201,6 +201,18 @@ describe("test counter invite service", () => {
     expect(secondAnswer).toBe(false);
   });
 
+  test("get user invites", async () => {
+    expect(
+      (await counterInviteService.getUserInvites(secondCounterUser.id)).length
+    ).toBe(1);
+  });
+
+  test("get counter invites", async () => {
+    expect(
+      (await counterInviteService.getCounterInvites(counter.id)).length
+    ).toBe(1);
+  });
+
   test("accepts invite", async () => {
     const participant = await counterInviteService.acceptInvite(invite.id);
 

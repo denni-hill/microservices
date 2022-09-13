@@ -46,6 +46,14 @@ class CounterInviteService {
     return await counterInviteDAO.isInviteReciever(inviteId, userId);
   }
 
+  async getUserInvites(userId: Id): Promise<CounterInvite[]> {
+    return await counterInviteDAO.getUserInvites(userId);
+  }
+
+  async getCounterInvites(counterId: Id): Promise<CounterInvite[]> {
+    return await counterInviteDAO.getCounterInvites(counterId);
+  }
+
   protected async parseNicknameDigits(
     nicknameDigits: string
   ): Promise<{ nickname: string; digits: number }> {

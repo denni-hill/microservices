@@ -52,6 +52,30 @@ class CounterInviteDAO extends BaseDAO<CounterInvite> {
     return newParticipant;
   }
 
+  async getUserInvites(userId: Id): Promise<CounterInvite[]> {
+    await this.validateId(userId);
+
+    return await this.repository.find({
+      where: {
+        user: {
+          id: userId
+        }
+      }
+    });
+  }
+
+  async getCounterInvites(counterId: Id): Promise<CounterInvite[]> {
+    await this.validateId(counterId);
+
+    return await this.repository.find({
+      where: {
+        counter: {
+          id: counterId
+        }
+      }
+    });
+  }
+
   async isInviteReciever(inviteId: Id, userId: Id): Promise<boolean> {
     await Promise.all([this.validateId(inviteId), this.validateId(userId)]);
 
