@@ -7,6 +7,24 @@ class CounterScoreDAO extends BaseDAO<CounterScore> {
   protected readonly alias = "CounterScore";
   protected readonly entityClass = CounterScore;
 
+  async getCounterScores(counterId: Id): Promise<CounterScore[]> {
+    await this.validateId(counterId);
+
+    try {
+      return await this.repository.find({
+        where: {
+          counter: { id: counterId }
+        }
+      });
+    } catch (e) {
+      throw new InternalServerError(
+        "Could not get counter scores in database",
+        e,
+        { counterId }
+      );
+    }
+  }
+
   async getUserScoresCount(userId: Id): Promise<number> {
     await this.validateId(userId);
 

@@ -2,11 +2,17 @@ import { build, validate } from "chain-validator-js";
 import counterParticipantDAO from "../dao/counter-participant.dao";
 import counterScoreDAO from "../dao/counter-score.dao";
 import counterDAO from "../dao/counter.dao";
-import { DeepPartial } from "../dao/deep-partial";
 import { Id } from "../dao/id";
 import userDAO from "../dao/user.dao";
 import { CounterScore } from "../database/entities/counter-score.entity";
 import ValidationError from "../errors/validation.error";
+
+export interface CounterScoreDTO {
+  counter: Id;
+  from: Id;
+  to: Id;
+  note: string;
+}
 
 const scoreUserValidationRules = () =>
   build()
@@ -21,7 +27,7 @@ const scoreUserValidationRules = () =>
         )
     )
     .withMessage("Counter participant is not found")
-    .customSanitizer(() => async () => userDAO.findOne);
+    .customSanitizer(() => async (id: Id) => userDAO.findOne(id));
 
 const scoreNoteValidationRules = () =>
   build().isString().bail().isLength({ min: 0, max: 500 });
@@ -39,9 +45,7 @@ const counterScoreValidationRules = () =>
   });
 
 class CounterScoreService {
-  async createScore(
-    scoreDTO: DeepPartial<CounterScore>
-  ): Promise<CounterScore> {
+  async createScore(scoreDTO: CounterScoreDTO): Promise<CounterScore> {
     const validationResult = await validate(
       scoreDTO,
       counterScoreValidationRules()
@@ -70,6 +74,14 @@ class CounterScoreService {
 
   async isScoreAuthor(scoreId: Id, userId: Id): Promise<boolean> {
     return await counterScoreDAO.isScoreAuthor(scoreId, userId);
+  }
+
+  async getCounterScores(counterId: Id): Promise<CounterScore[]> {
+    return await counterScoreDAO.getCounterScores(counterId);
+  }
+
+  async getScore(scoreId: Id): Promise<CounterScore> {
+    return await counterScoreDAO.findOne(scoreId, { notFound: true });
   }
 }
 

@@ -20,9 +20,9 @@ import { User } from "../../database/entities/user.entity";
 import counterService from "../../service/counter.service";
 import { Counter } from "../../database/entities/counter.entity";
 import { CounterParticipant } from "../../database/entities/counter-participant.entity";
-import { ConflictError } from "../../errors/conflict.error";
 import messenger from "../../rabbitmq/messenger";
-import ForbiddenError from "../../errors/forbidden.error";
+import { CounterScore } from "../../database/entities/counter-score.entity";
+import counterScoreService from "../../service/counter-score.service";
 
 const accessToken = jwt.sign(
   {
@@ -70,12 +70,14 @@ let secondAuthUser: AuthUserData;
 let counterUser: User;
 let secondCounterUser: User;
 let counter: Counter;
+let firstScore: CounterScore;
+let secondScore: CounterScore;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
 });
 
-describe("test counter service", () => {
+describe("tests counter score service", () => {
   test("creating test user in auth service", async () => {
     authUser = (await authServiceAxios.post("/users/create", testAuthUserData))
       .data;
@@ -129,144 +131,124 @@ describe("test counter service", () => {
     }
   });
 
-  test("updates counter", async () => {
-    counter = await counterService.updateCounter(counter.id, {
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: secondCounterUser.id
-    });
-
-    expect(counter).toBeInstanceOf(Counter);
-    expect(counter).toMatchObject({
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: {
-        id: secondCounterUser.id
-      }
-    });
-  });
-
-  test("get counter", async () => {
-    counter = await counterService.getCounter(counter.id);
-    expect(counter).toBeInstanceOf(Counter);
-  });
-
-  test("checks if owner is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      counterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(true);
-
-    const secondUserAnswer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(secondUserAnswer).toBe(true);
-  });
-
-  test("checks if user is counter owner", async () => {
-    const answer = await counterService.isUserCounterOwner(
-      counterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(false);
-
-    const secondUserAnswer = await counterService.isUserCounterOwner(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(secondUserAnswer).toBe(true);
-  });
-
-  test("updates counter", async () => {
-    counter = await counterService.updateCounter(counter.id, {
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: counterUser.id
-    });
-
-    expect(counter).toBeInstanceOf(Counter);
-    expect(counter).toMatchObject({
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: {
-        id: counterUser.id
-      }
-    });
-  });
-
-  test("removes user from counter participants", async () => {
-    const affected = await counterService.removeParticipant(
-      counter.id,
-      secondCounterUser.id
-    );
-
-    expect(affected).toBe(1);
-  });
-
-  test("adds user to counter participants", async () => {
+  test("adds second user to counter participants", async () => {
     const participant = await counterService.addParticipant(
       counter.id,
       secondCounterUser.id
     );
 
     expect(participant).toBeInstanceOf(CounterParticipant);
-    expect(participant).toMatchObject({
+  });
+
+  test("creates score from owner to another participant", async () => {
+    firstScore = await counterScoreService.createScore({
+      counter: counter.id,
+      from: counterUser.id,
+      to: secondCounterUser.id,
+      note: "bla-bla-bla-bla-bla"
+    });
+
+    expect(firstScore).toBeInstanceOf(CounterScore);
+    expect(firstScore).toMatchObject({
       counter: {
         id: counter.id
       },
-      user: {
+      from: {
+        id: counterUser.id
+      },
+      to: {
         id: secondCounterUser.id
-      }
+      },
+      note: "bla-bla-bla-bla-bla"
     });
   });
 
-  test("checks if user is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
+  test("get score", async () => {
+    firstScore = await counterScoreService.getScore(firstScore.id);
+
+    expect(firstScore).toBeInstanceOf(CounterScore);
+  });
+
+  test("updates core note", async () => {
+    firstScore = await counterScoreService.updateScoreNote(
+      firstScore.id,
+      "not bla-bla-bla-bla"
     );
 
-    expect(answer).toBe(true);
+    expect(firstScore).toBeInstanceOf(CounterScore);
+    expect(firstScore).toMatchObject({
+      note: "not bla-bla-bla-bla"
+    });
   });
 
-  test("removes user from counter participants", async () => {
-    const affected = await counterService.removeParticipant(
-      counter.id,
-      secondCounterUser.id
+  test("checks if user has scores", async () => {
+    expect(await counterScoreService.doesUserHaveScores(counterUser.id)).toBe(
+      true
     );
 
-    expect(affected).toBe(1);
+    expect(
+      await counterScoreService.doesUserHaveScores(secondCounterUser.id)
+    ).toBe(false);
   });
 
-  test("checks if user is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
-    );
+  test("checks if user is score author", async () => {
+    expect(
+      await counterScoreService.isScoreAuthor(firstScore.id, counterUser.id)
+    ).toBe(true);
 
-    expect(answer).toBe(false);
+    expect(
+      await counterScoreService.isScoreAuthor(
+        firstScore.id,
+        secondCounterUser.id
+      )
+    ).toBe(false);
   });
 
-  test("fails to remove counter owner from participants", async () => {
-    try {
-      await counterService.removeParticipant(counter.id, counterUser.id);
-    } catch (e) {
-      expect(e).toBeInstanceOf(ForbiddenError);
-    }
+  test("creates second score from participant to owner", async () => {
+    secondScore = await counterScoreService.createScore({
+      counter: counter.id,
+      from: secondCounterUser.id,
+      to: counterUser.id,
+      note: "test"
+    });
+
+    expect(secondScore).toBeInstanceOf(CounterScore);
+    expect(secondScore).toMatchObject({
+      counter: {
+        id: counter.id
+      },
+      from: {
+        id: secondCounterUser.id
+      },
+      to: {
+        id: counterUser.id
+      },
+      note: "test"
+    });
   });
 
-  test("adds user to counter participants, but user already participates", async () => {
-    try {
-      await counterService.addParticipant(counter.id, counterUser.id);
-    } catch (e) {
-      expect(e).toBeInstanceOf(ConflictError);
-    }
+  test("checks if user is score author", async () => {
+    expect(
+      await counterScoreService.isScoreAuthor(
+        secondScore.id,
+        secondCounterUser.id
+      )
+    ).toBe(true);
+
+    expect(
+      await counterScoreService.isScoreAuthor(secondScore.id, counterUser.id)
+    ).toBe(false);
+  });
+
+  test("get counter scores", async () => {
+    const scores = await counterScoreService.getCounterScores(counter.id);
+
+    expect(scores.length).toBe(2);
+  });
+
+  test("deletes score", async () => {
+    expect(await counterScoreService.deleteScore(firstScore.id)).toBe(1);
+    expect(await counterScoreService.deleteScore(secondScore.id)).toBe(1);
   });
 
   test("deletes counter", async () => {
@@ -277,11 +259,11 @@ describe("test counter service", () => {
     await userService.deleteUser(counterUser.id, false);
     await userService.deleteUser(secondCounterUser.id, false);
   });
-});
 
-afterAll(async () => {
-  await defaultDataSource.destroy();
-  await messenger.disconnect();
-  await authServiceAxios.delete(`/users/${authUser.id}`);
-  await authServiceAxios.delete(`/users/${secondAuthUser.id}`);
+  afterAll(async () => {
+    await defaultDataSource.destroy();
+    await messenger.disconnect();
+    await authServiceAxios.delete(`/users/${authUser.id}`);
+    await authServiceAxios.delete(`/users/${secondAuthUser.id}`);
+  });
 });

@@ -128,6 +128,7 @@ describe("test counter invite service", () => {
       });
     } catch (e) {
       console.log(e);
+      throw e;
     }
   });
 

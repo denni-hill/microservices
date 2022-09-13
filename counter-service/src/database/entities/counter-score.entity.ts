@@ -22,14 +22,16 @@ export class CounterScore {
 
   @ManyToOne(() => User, (participant) => participant, {
     onDelete: "RESTRICT",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
+    eager: true
   })
   @JoinColumn()
   from: User;
 
   @ManyToOne(() => User, (user) => user, {
     onDelete: "RESTRICT",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
+    eager: true
   })
   @JoinColumn()
   to: User;

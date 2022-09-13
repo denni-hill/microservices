@@ -9,6 +9,24 @@ import { validateId } from "../misc/validate-id";
 import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
+export interface ThrowErrorsOptions {
+  notFound: boolean;
+}
+
+export class DefaultThrowErrorsOptions implements ThrowErrorsOptions {
+  notFound = false;
+}
+
+export interface PaginationOptions {
+  count: number;
+  page: number;
+}
+
+export class DefaultPaginationOptions implements PaginationOptions {
+  count = 20;
+  page: 1;
+}
+
 export interface CanCreateDAO<T> {
   create(data: DeepPartial<T>): Promise<T>;
 }
@@ -32,14 +50,6 @@ export interface CanSoftDeleteDAO {
 
 export interface CanFindDAO<T> {
   findOne(id: Id, throwErrorsOptions?: ThrowErrorsOptions): Promise<T>;
-}
-
-export interface ThrowErrorsOptions {
-  notFound: boolean;
-}
-
-export class DefaultThrowErrorsOptions implements ThrowErrorsOptions {
-  notFound = false;
 }
 
 export abstract class BaseDAO<T extends { id: Id }>
