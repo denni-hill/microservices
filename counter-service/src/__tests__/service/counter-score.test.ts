@@ -75,6 +75,7 @@ let secondScore: CounterScore;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
+  await messenger.connect();
 });
 
 describe("tests counter score service", () => {
@@ -259,11 +260,11 @@ describe("tests counter score service", () => {
     await userService.deleteUser(counterUser.id, false);
     await userService.deleteUser(secondCounterUser.id, false);
   });
+});
 
-  afterAll(async () => {
-    await defaultDataSource.destroy();
-    await messenger.disconnect();
-    await authServiceAxios.delete(`/users/${authUser.id}`);
-    await authServiceAxios.delete(`/users/${secondAuthUser.id}`);
-  });
+afterAll(async () => {
+  await defaultDataSource.destroy();
+  await messenger.disconnect();
+  await authServiceAxios.delete(`/users/${authUser.id}`);
+  await authServiceAxios.delete(`/users/${secondAuthUser.id}`);
 });

@@ -49,11 +49,12 @@ const testCounterUserData = {
   nickname: "test"
 };
 
-let authUser;
-let counterUser;
+let authUser: AuthUserData;
+let counterUser: User;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
+  await messenger.connect();
 });
 
 describe("testing user service", () => {
@@ -86,6 +87,14 @@ describe("testing user service", () => {
     });
 
     expect(counterUser).toBeInstanceOf(User);
+  });
+
+  test("softly user in counter service", async () => {
+    expect(await userService.deleteUser(counterUser.id)).toBe(1);
+  });
+
+  test("softly restores in counter service", async () => {
+    expect(await userService.restoreUser(counterUser.id)).toBe(1);
   });
 
   test("deletes user in counter service", async () => {

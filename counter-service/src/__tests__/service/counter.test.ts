@@ -73,6 +73,7 @@ let counter: Counter;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
+  await messenger.connect();
 });
 
 describe("test counter service", () => {

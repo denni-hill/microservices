@@ -10,7 +10,7 @@
     "migrate": "knex migrate:latest --knexfile src/database/knexfile.ts",
     "migrate:rollback": "knex migrate:rollback --knexfile src/database/knexfile.ts",
     "migrate:make": "knex --knexfile src/database/knexfile.ts migrate:make",
-    "test": "jest --detectOpenHandles build/",
+    "test": "jest --detectOpenHandles",
     "dev-test": "jest --watchAll"
   },
   "author": "Denis Saenko",

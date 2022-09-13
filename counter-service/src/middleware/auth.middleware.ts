@@ -19,7 +19,7 @@ export const auth =
       const authorizationHeader = req.headers["authorization"];
       if (
         typeof authorizationHeader !== "string" ||
-        !authorizationHeader.startsWith("Brearer ")
+        !authorizationHeader.startsWith("Bearer ")
       )
         throw new AuthorizationError(
           "Authorization header is required to be bearer access token"

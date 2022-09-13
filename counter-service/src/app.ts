@@ -1,6 +1,4 @@
 import sourceMapSupport from "source-map-support";
-import dotenv from "dotenv";
-import path from "path";
 import express, { Response } from "express";
 import redisClient from "./redis";
 import "reflect-metadata";
@@ -12,8 +10,6 @@ import messenger from "./rabbitmq/messenger";
 import logger from "./logger";
 
 sourceMapSupport.install();
-dotenv.config();
-dotenv.config({ path: path.join(process.cwd(), "..", "services.env", ".env") });
 
 const app = express();
 
@@ -36,25 +32,26 @@ app.use((e, _req, res: Response, next) => {
 app.start = async () => {
   try {
     await defaultDataSource.initialize();
-    console.log("Database is connected successfully...");
+    logger.info("Database is connected successfully");
   } catch (e) {
-    console.log("Database connection error", e);
+    logger.error("Failed to connecto database", e);
   }
   try {
     await redisClient.connect();
+    logger.info("Redis client is connected successfully");
   } catch (e) {
-    console.log("Redis connection error", e);
+    logger.error("Redis connection error", e);
   }
   try {
     await messenger.connect();
-    console.log("RabbitMQ is connected successfully...");
+    logger.info("RabbitMQ is connected successfully");
   } catch (e) {
-    console.log("Could not connect RabbitMQ!", e);
+    logger.error("Could not connect RabbitMQ!", e);
   }
 
   app.server = await new Promise((res) => {
     const server = app.listen(process.env.PORT, () => {
-      console.log(`HTTP server started on port ${process.env.PORT}`);
+      logger.info(`HTTP server started on port ${process.env.PORT}`);
       res(server);
     });
   });
@@ -63,6 +60,7 @@ app.start = async () => {
 app.stop = async () => {
   await redisClient.disconnect();
   await messenger.disconnect();
+  await defaultDataSource.destroy();
   await new Promise((res) => {
     app.server.close(res);
   });

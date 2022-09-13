@@ -7,6 +7,14 @@ import messenger from "../rabbitmq/messenger";
 import logger from "../logger";
 import { Id } from "../dao/id";
 
+export interface UserDTO {
+  nickname: string;
+  sex: boolean;
+  isAdmin?: boolean;
+  digits?: number;
+  authUserId?: number;
+}
+
 const UserDTOValidationRules = () => ({
   nickname: build()
     .isString()
@@ -20,7 +28,7 @@ const UserDTOValidationRules = () => ({
     .withMessage("should not contain spaces")
     .isLength({ min: 2, max: 20 }),
   sex: build().isBoolean(),
-  isAdmin: build().optional()
+  isAdmin: build().optional().isBoolean()
 });
 
 //creates 4-length number to allow nickname collisions in [1000, 9999] to be easy to parse
@@ -38,10 +46,10 @@ const createUniqueNicknameDigits = async (
 };
 
 class UserService {
-  async createUser(userDTO: Partial<User>): Promise<User> {
+  async createUser(userDTO: UserDTO): Promise<User> {
     const validationResult = await validate(
       userDTO,
-      build().schema<User>({
+      build().schema<UserDTO>({
         authUserId: build()
           .isInt()
           .bail()
@@ -67,12 +75,12 @@ class UserService {
     return user;
   }
 
-  async updateUser(userId: Id, userDTO: Partial<User>): Promise<User> {
+  async updateUser(userId: Id, userDTO: UserDTO): Promise<User> {
     await userDAO.findOne(userId, { notFound: true });
 
     const validationResult = await validate(
       userDTO,
-      build().schema<User>(UserDTOValidationRules())
+      build().schema<UserDTO>(UserDTOValidationRules())
     );
 
     if (validationResult.failed) throw new ValidationError(validationResult);
@@ -100,6 +108,10 @@ class UserService {
       return await userDAO.deleteByAuthUserId(authUserId, { notFound: true });
   }
 
+  async restoreUser(userId: Id): Promise<number> {
+    return await userDAO.restore(userId, { notFound: true });
+  }
+
   async getUser(userId: Id): Promise<User> {
     return await userDAO.findOne(userId, { notFound: true });
   }
@@ -111,22 +123,24 @@ class UserService {
 
 const userService = new UserService();
 
-messenger.consumeMessages("auth-user-deleted", async (msg) => {
-  const authUserId = JSON.parse(msg.content.toString());
+messenger.addEventListener("connect", (messenger) => {
+  messenger.consumeMessages("auth-user-deleted", async (msg) => {
+    const authUserId = JSON.parse(msg.content.toString());
 
-  userService
-    .deleteUserByAuthId(authUserId)
-    .then(() => {
-      logger.info("User deleted on auth-user-deleted event", {
-        authUserId
+    userService
+      .deleteUserByAuthId(authUserId)
+      .then(() => {
+        logger.info("User deleted on auth-user-deleted event", {
+          authUserId
+        });
+      })
+      .catch((e) => {
+        logger.error(
+          "Error occured during deleting user on auth-user-delted event",
+          e
+        );
       });
-    })
-    .catch((e) => {
-      logger.error(
-        "Error occured during deleting user on auth-user-delted event",
-        e
-      );
-    });
+  });
 });
 
 export default userService;

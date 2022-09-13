@@ -1,6 +1,10 @@
 import { EventEmitter } from "events";
 import amqp, { ConsumeMessage } from "amqplib";
-const eventEmmiter = new EventEmitter();
+import InternalServerError from "../errors/internal.error";
+const consumersEventEmitter = new EventEmitter();
+const messengerEventEmitter = new EventEmitter();
+
+export type MessengerEvents = "connect";
 
 let connection: amqp.Connection;
 let consumer: amqp.Channel;
@@ -14,6 +18,22 @@ class Messenger {
       connection.createChannel(),
       connection.createChannel()
     ]);
+
+    messengerEventEmitter.emit("connect", this);
+  }
+
+  addEventListener(
+    eventName: MessengerEvents,
+    handler: (messenger: Messenger) => void
+  ) {
+    messengerEventEmitter.on(eventName, handler);
+  }
+
+  removeEventListener(
+    eventName: MessengerEvents,
+    handler: (...arsg: unknown[]) => void
+  ) {
+    messengerEventEmitter.off(eventName, handler);
   }
 
   async disconnect() {
@@ -32,7 +52,11 @@ class Messenger {
       throw e;
     }
 
-    if (connection === undefined) await this.connect();
+    if (connection === undefined)
+      throw new InternalServerError(
+        "RabbitMQ is not connected",
+        new Error("RabbitMQ is not connected")
+      );
 
     if (!publisherKnownQueues.includes(queue)) {
       await publisher.assertQueue(queue, { durable: false });
@@ -46,20 +70,24 @@ class Messenger {
     queue: string,
     messageHandler: { (msg: ConsumeMessage): void }
   ) {
-    if (connection === undefined) await this.connect();
+    if (connection === undefined)
+      throw new InternalServerError(
+        "RabbitMQ is not connected",
+        new Error("RabbitMQ is not connected")
+      );
 
-    if (!eventEmmiter.eventNames().includes(queue)) {
+    if (!consumersEventEmitter.eventNames().includes(queue)) {
       await consumer.assertQueue(queue, { durable: false });
       await consumer.consume(
         queue,
         (msg) => {
-          eventEmmiter.emit(queue, msg);
+          consumersEventEmitter.emit(queue, msg);
         },
         { noAck: true }
       );
     }
 
-    eventEmmiter.on(queue, messageHandler);
+    consumersEventEmitter.on(queue, messageHandler);
   }
 }
 

@@ -76,6 +76,7 @@ let invite: CounterInvite;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
+  await messenger.connect();
 });
 
 describe("test counter invite service", () => {

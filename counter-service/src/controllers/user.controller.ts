@@ -49,6 +49,17 @@ class UserController {
         next(e);
       }
     };
+
+  restoreUser: (userIdParamKey: string) => Handler =
+    (userIdParamKey) => async (req, res, next) => {
+      try {
+        await userService.restoreUser(Number(req.params[userIdParamKey]));
+
+        res.status(200).send();
+      } catch (e) {
+        next(e);
+      }
+    };
 }
 
 export default new UserController();
