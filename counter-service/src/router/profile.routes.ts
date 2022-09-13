@@ -15,17 +15,13 @@ router.put(
   auth(),
   json(),
   userIdMocker,
+  (req, _res, next) => {
+    delete req.body.isAdmin;
+    next();
+  },
   userController.updateUser("userId")
 );
 
 router.get("/", auth(), json(), userIdMocker, userController.getUser("userId"));
-
-router.delete(
-  "/",
-  auth(),
-  json(),
-  userIdMocker,
-  userController.deleteUser("userId")
-);
 
 export default router;

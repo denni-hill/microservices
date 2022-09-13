@@ -16,6 +16,7 @@ process.env.AUTH_SERVICE_HOST = "http://localhost/auth";
 process.env.PORT = "8080";
 
 import app from "../../app";
+import userService from "../../service/user.service";
 
 const accessToken = jwt.sign(
   {
@@ -51,9 +52,7 @@ beforeAll(async () => {
   await app.start();
 });
 
-import userService from "../../service/user.service";
-
-describe("tests users routes", () => {
+describe("tests profiles routes", () => {
   test("creating test user in auth service", async () => {
     authUser = (await authServiceAxios.post("/users/create", testUserData))
       .data;
@@ -94,17 +93,8 @@ describe("tests users routes", () => {
     });
   });
 
-  test("make counter user admin", async () => {
-    userService.updateUser(counterUser.id, {
-      ...counterUser,
-      isAdmin: true
-    });
-  });
-
-  test("updates user", async () => {
-    clientAxios.defaults.headers.common.authorization = `Bearer ${accessToken}`;
-
-    const response = await clientAxios.put(`/users/${counterUser.id}`, {
+  test("update profile", async () => {
+    const response = await clientAxios.put("/profile", {
       nickname: "another",
       sex: false
     });
@@ -119,27 +109,17 @@ describe("tests users routes", () => {
     });
   });
 
-  test("gets user", async () => {
-    const response = await clientAxios.get(`/users/${counterUser.id}`);
+  test("get profile", async () => {
+    const response = await clientAxios.get("/profile");
+
     expect(response.status).toBe(200);
 
     counterUser = response.data;
 
     expect(counterUser).toMatchObject({
-      id: counterUser.id
+      nickname: "another",
+      sex: false
     });
-  });
-
-  test("deletes user", async () => {
-    const response = await clientAxios.delete(`/users/${counterUser.id}`);
-
-    expect(response.status).toBe(200);
-  });
-
-  test("restores user", async () => {
-    const response = await clientAxios.post(`/users/restore/${counterUser.id}`);
-
-    expect(response.status).toBe(200);
   });
 });
 
