@@ -6,10 +6,12 @@ import { build, validate } from "chain-validator-js";
 import ValidationError from "../errors/validation.error";
 import { Id } from "../dao/id";
 import { CounterParticipant } from "../database/entities/counter-participant.entity";
+import counterParticipantDao from "../dao/counter-participant.dao";
+import { ConflictError } from "../errors/conflict.error";
 
 class CounterInviteService {
   async createInvite(
-    counterId: number,
+    counterId: Id,
     toUserNicknameDigits: string
   ): Promise<CounterInvite> {
     const { nickname, digits } = await this.parseNicknameDigits(
@@ -20,6 +22,11 @@ class CounterInviteService {
       counterDAO.findOne(counterId, { notFound: true }),
       userDAO.findByNicknameDigits(nickname, digits, { notFound: true })
     ]);
+
+    if (
+      await counterParticipantDao.isExistByCounterIdUserId(counter.id, user.id)
+    )
+      throw new ConflictError("User is already participates in this counter");
 
     return await counterInviteDAO.create({
       counter,
@@ -35,14 +42,14 @@ class CounterInviteService {
     return await counterInviteDAO.delete(inviteId, { notFound: true });
   }
 
-  async isInviteOwner(inviteId: Id, userId: Id): Promise<boolean> {
-    return await counterInviteDAO.isInviteOwner(inviteId, userId);
+  async isInviteReciever(inviteId: Id, userId: Id): Promise<boolean> {
+    return await counterInviteDAO.isInviteReciever(inviteId, userId);
   }
 
   protected async parseNicknameDigits(
     nicknameDigits: string
   ): Promise<{ nickname: string; digits: number }> {
-    const validationResult = await validate(
+    const nicknameDigitsStringValidationResult = await validate(
       nicknameDigits,
       build()
         .isString()
@@ -58,14 +65,21 @@ class CounterInviteService {
           nickname: splittedNicknameDigits[0],
           digits: splittedNicknameDigits[1]
         }))
-        .schema<{ nickname: string; digits: string }>({
-          nickname: build()
-            .isString()
-            .bail()
-            .trim()
-            .isLength({ min: 2, max: 20 }),
-          digits: build().isInt({ min: 1000, max: 9999 })
-        })
+    );
+
+    if (nicknameDigitsStringValidationResult.failed)
+      throw new ValidationError(nicknameDigitsStringValidationResult);
+
+    const validationResult = await validate(
+      nicknameDigitsStringValidationResult.validated,
+      build().schema<{ nickname: string; digits: string }>({
+        nickname: build()
+          .isString()
+          .bail()
+          .trim()
+          .isLength({ min: 2, max: 20 }),
+        digits: build().isInt({ min: 1000, max: 9999 })
+      })
     );
 
     if (validationResult.failed) throw new ValidationError(validationResult);

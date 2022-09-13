@@ -1,14 +1,27 @@
 import { defaultDataSource } from "../database";
 import { CounterInvite } from "../database/entities/counter-invite.entity";
 import { CounterParticipant } from "../database/entities/counter-participant.entity";
+import { ConflictError } from "../errors/conflict.error";
 import InternalServerError from "../errors/internal.error";
 import logger from "../logger";
 import { BaseDAO } from "./base.dao";
+import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
 class CounterInviteDAO extends BaseDAO<CounterInvite> {
   protected readonly alias = "CounterInvite";
   protected readonly entityClass = CounterInvite;
+
+  override async create(
+    data: DeepPartial<CounterInvite>
+  ): Promise<CounterInvite> {
+    if (await this.isExistByCounterIdUserId(data.counter.id, data.user.id))
+      throw new ConflictError(
+        "Invite for this counter is already sent to this user"
+      );
+
+    return await super.create(data);
+  }
 
   async acceptInvite(inviteId: Id): Promise<CounterParticipant> {
     const invite = await this.findOne(inviteId, { notFound: true });
@@ -39,7 +52,7 @@ class CounterInviteDAO extends BaseDAO<CounterInvite> {
     return newParticipant;
   }
 
-  async isInviteOwner(inviteId: Id, userId: Id): Promise<boolean> {
+  async isInviteReciever(inviteId: Id, userId: Id): Promise<boolean> {
     await Promise.all([this.validateId(inviteId), this.validateId(userId)]);
 
     try {
@@ -55,9 +68,34 @@ class CounterInviteDAO extends BaseDAO<CounterInvite> {
       );
     } catch (e) {
       throw new InternalServerError(
-        "Could not check if user is invite owner",
+        "Could not check if user is invite owner in database",
         e,
         { inviteId, userId }
+      );
+    }
+  }
+
+  async isExistByCounterIdUserId(counterId: Id, userId: Id): Promise<boolean> {
+    await Promise.all([this.validateId(counterId), this.validateId(userId)]);
+
+    try {
+      return (
+        (await this.repository.count({
+          where: {
+            counter: {
+              id: counterId
+            },
+            user: {
+              id: userId
+            }
+          }
+        })) > 0
+      );
+    } catch (e) {
+      throw new InternalServerError(
+        `Could not check if ${this.alias} exist by counter id and user id`,
+        e,
+        { counterId, userId }
       );
     }
   }

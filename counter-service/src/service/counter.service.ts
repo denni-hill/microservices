@@ -95,7 +95,9 @@ class CounterService {
 
   async removeParticipant(counterId: Id, userId: Id) {
     if (await counterDAO.isCounterOwner(userId, counterId))
-      throw new ForbiddenError("User is counter owner");
+      throw new ForbiddenError(
+        "Cannot delete counter owner from its participants"
+      );
 
     return counterParticipantDAO.deleteByCounterIdUserId(counterId, userId, {
       notFound: true

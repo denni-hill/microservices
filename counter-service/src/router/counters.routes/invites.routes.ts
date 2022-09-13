@@ -24,7 +24,7 @@ router.get(
     try {
       if (
         req.user.isAdmin !== true &&
-        !(await counterInviteService.isInviteOwner(
+        !(await counterInviteService.isInviteReciever(
           Number(req.params.inviteId),
           req.user.id
         ))
@@ -45,7 +45,7 @@ router.delete(
     try {
       if (
         req.user.isAdmin !== true &&
-        !(await counterInviteService.isInviteOwner(
+        !(await counterInviteService.isInviteReciever(
           Number(req.params.inviteId),
           req.user.id
         )) &&

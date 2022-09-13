@@ -22,7 +22,9 @@ import { Counter } from "../../database/entities/counter.entity";
 import { CounterParticipant } from "../../database/entities/counter-participant.entity";
 import { ConflictError } from "../../errors/conflict.error";
 import messenger from "../../rabbitmq/messenger";
-import ForbiddenError from "../../errors/forbidden.error";
+import { CounterInvite } from "../../database/entities/counter-invite.entity";
+import counterInviteService from "../../service/counter-invite.service";
+import counterInviteDao from "../../dao/counter-invite.dao";
 
 const accessToken = jwt.sign(
   {
@@ -70,12 +72,13 @@ let secondAuthUser: AuthUserData;
 let counterUser: User;
 let secondCounterUser: User;
 let counter: Counter;
+let invite: CounterInvite;
 
 beforeAll(async () => {
   await defaultDataSource.initialize();
 });
 
-describe("test counter service", () => {
+describe("test counter invite service", () => {
   test("creating test user in auth service", async () => {
     authUser = (await authServiceAxios.post("/users/create", testAuthUserData))
       .data;
@@ -128,91 +131,77 @@ describe("test counter service", () => {
     }
   });
 
-  test("updates counter", async () => {
-    counter = await counterService.updateCounter(counter.id, {
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: secondCounterUser.id
-    });
+  test("creates invite to counter", async () => {
+    invite = await counterInviteService.createInvite(
+      counter.id,
+      `${secondCounterUser.nickname}#${secondCounterUser.digits}`
+    );
 
-    expect(counter).toBeInstanceOf(Counter);
-    expect(counter).toMatchObject({
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: {
+    expect(invite).toBeInstanceOf(CounterInvite);
+    expect(invite).toMatchObject({
+      counter: {
+        id: counter.id
+      },
+      user: {
         id: secondCounterUser.id
       }
     });
   });
 
-  test("get counter", async () => {
-    counter = await counterService.getCounter(counter.id);
-    expect(counter).toBeInstanceOf(Counter);
+  test("fails to create existing invite to counter", async () => {
+    try {
+      await counterInviteService.createInvite(
+        counter.id,
+        `${secondCounterUser.nickname}#${secondCounterUser.digits}`
+      );
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConflictError);
+    }
   });
 
-  test("checks if owner is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      counterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(true);
-
-    const secondUserAnswer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(secondUserAnswer).toBe(true);
-  });
-
-  test("checks if user is counter owner", async () => {
-    const answer = await counterService.isUserCounterOwner(
-      counterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(false);
-
-    const secondUserAnswer = await counterService.isUserCounterOwner(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(secondUserAnswer).toBe(true);
-  });
-
-  test("updates counter", async () => {
-    counter = await counterService.updateCounter(counter.id, {
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: counterUser.id
-    });
-
-    expect(counter).toBeInstanceOf(Counter);
-    expect(counter).toMatchObject({
-      name: "Updated test counter",
-      description: "This is an updated test counter",
-      owner: {
-        id: counterUser.id
-      }
-    });
-  });
-
-  test("removes user from counter participants", async () => {
-    const affected = await counterService.removeParticipant(
-      counter.id,
-      secondCounterUser.id
-    );
+  test("delete invite to counter", async () => {
+    const affected = await counterInviteService.deleteInvite(invite.id);
 
     expect(affected).toBe(1);
   });
 
-  test("adds user to counter participants", async () => {
-    const participant = await counterService.addParticipant(
-      counter.id,
+  test("creates invite to counter", async () => {
+    try {
+      invite = await counterInviteService.createInvite(
+        counter.id,
+        `${secondCounterUser.nickname}#${secondCounterUser.digits}`
+      );
+
+      expect(invite).toBeInstanceOf(CounterInvite);
+      expect(invite).toMatchObject({
+        counter: {
+          id: counter.id
+        },
+        user: {
+          id: secondCounterUser.id
+        }
+      });
+    } catch (e) {
+      console.dir(e.result, { depth: null });
+    }
+  });
+
+  test("checks if user is invite reciever", async () => {
+    const answer = await counterInviteService.isInviteReciever(
+      invite.id,
       secondCounterUser.id
     );
+    expect(answer).toBe(true);
+
+    const secondAnswer = await counterInviteService.isInviteReciever(
+      invite.id,
+      counterUser.id
+    );
+    expect(secondAnswer).toBe(false);
+  });
+
+  test("accepts invite", async () => {
+    const participant = await counterInviteService.acceptInvite(invite.id);
 
     expect(participant).toBeInstanceOf(CounterParticipant);
     expect(participant).toMatchObject({
@@ -223,46 +212,29 @@ describe("test counter service", () => {
         id: secondCounterUser.id
       }
     });
+
+    expect(
+      await counterService.isUserCounterParticipant(
+        secondCounterUser.id,
+        counter.id
+      )
+    ).toBe(true);
+
+    expect(await counterInviteDao.isExist(invite.id)).toBe(false);
+    expect(
+      await counterInviteDao.isExistByCounterIdUserId(
+        counter.id,
+        secondCounterUser.id
+      )
+    ).toBe(false);
   });
 
-  test("checks if user is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(true);
-  });
-
-  test("removes user from counter participants", async () => {
-    const affected = await counterService.removeParticipant(
-      counter.id,
-      secondCounterUser.id
-    );
-
-    expect(affected).toBe(1);
-  });
-
-  test("checks if user is counter participant", async () => {
-    const answer = await counterService.isUserCounterParticipant(
-      secondCounterUser.id,
-      counter.id
-    );
-
-    expect(answer).toBe(false);
-  });
-
-  test("fails to remove counter owner from participants", async () => {
+  test("fails to create invite to participant", async () => {
     try {
-      await counterService.removeParticipant(counter.id, counterUser.id);
-    } catch (e) {
-      expect(e).toBeInstanceOf(ForbiddenError);
-    }
-  });
-
-  test("adds user to counter participants, but user already participates", async () => {
-    try {
-      await counterService.addParticipant(counter.id, counterUser.id);
+      await counterInviteService.createInvite(
+        counter.id,
+        `${secondCounterUser.nickname}#${secondCounterUser.digits}`
+      );
     } catch (e) {
       expect(e).toBeInstanceOf(ConflictError);
     }
