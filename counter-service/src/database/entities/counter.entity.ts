@@ -18,7 +18,8 @@ export class Counter {
 
   @ManyToOne(() => User, {
     onDelete: "CASCADE",
-    onUpdate: "CASCADE"
+    onUpdate: "CASCADE",
+    eager: true
   })
   owner: User;
 

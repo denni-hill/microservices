@@ -45,7 +45,14 @@ class CounterService {
   async updateCounter(counterId: Id, counterDTO: CounterDTO): Promise<Counter> {
     const validationResult = await validate(
       counterDTO,
-      build().schema(CounterDTOValidationRules())
+      build().schema({
+        ...CounterDTOValidationRules(),
+        owner: build()
+          .optional()
+          .isInt()
+          .bail()
+          .customSanitizer(() => async (id: Id) => userService.getUser(id))
+      })
     );
     if (validationResult.failed) throw new ValidationError(validationResult);
 

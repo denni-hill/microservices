@@ -9,7 +9,7 @@ export const canModifyCounter: { (counterIdParamKey: string): Handler } =
     try {
       if (req.user === undefined) throw new AuthorizationError();
       if (
-        req.user.isAdmin !== true ||
+        req.user.isAdmin !== true &&
         !(await counterService.isUserCounterOwner(
           req.user.id,
           Number(req.params[counterIdParamKey])
