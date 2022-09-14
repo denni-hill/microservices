@@ -1,4 +1,4 @@
-import { json } from "body-parser";
+import { text } from "body-parser";
 import { Router } from "express";
 import counterInviteController from "../../controllers/counter-invite.controller";
 import ForbiddenError from "../../errors/forbidden.error";
@@ -12,7 +12,7 @@ const router = Router();
 router.post(
   "/:counterId",
   auth(),
-  json(),
+  text(),
   canModifyCounter("counterId"),
   counterInviteController.createInvite("counterId")
 );
