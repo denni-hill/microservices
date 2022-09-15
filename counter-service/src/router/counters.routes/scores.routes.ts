@@ -1,4 +1,4 @@
-import { json } from "body-parser";
+import { json, text } from "body-parser";
 import { Handler, Router } from "express";
 import counterScoreController from "../../controllers/counter-score.controller";
 import AuthorizationError from "../../errors/authorization.error";
@@ -12,13 +12,15 @@ const canEditScore: { (counterScoreIdParamKey: string): Handler } =
     try {
       if (req.user === undefined) throw new AuthorizationError();
       if (
-        req.user.isAdmin !== true ||
+        req.user.isAdmin !== true &&
         !(await counterScoreService.isScoreAuthor(
           Number(req.params[counterScoreIdParamKey]),
           req.user.id
         ))
       )
-        throw new ForbiddenError();
+        throw new ForbiddenError("You cannot edit this score");
+
+      next();
     } catch (e) {
       next(e);
     }
@@ -33,6 +35,7 @@ router.post(
   isCounterParticipant("counterId"),
   (req, _res, next) => {
     req.body.counter = Number(req.params["counterId"]);
+    req.body.from = req.user.id;
     next();
   },
   counterScoreController.createScore
@@ -41,7 +44,7 @@ router.post(
 router.put(
   "/:counterId/:scoreId",
   auth(),
-  json(),
+  text(),
   isCounterParticipant("counterId"),
   canEditScore("scoreId"),
   counterScoreController.updateScore("scoreId")

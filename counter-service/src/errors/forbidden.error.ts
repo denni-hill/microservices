@@ -1,3 +1,4 @@
+import logger from "../logger";
 import BaseError from "./base.error";
 
 class ForbiddenError extends BaseError {
@@ -7,6 +8,9 @@ class ForbiddenError extends BaseError {
 
   getResponseBody = () => this.message;
   getStatusCode = () => 403;
+  logError(): void {
+    logger.info(this.message, this.params);
+  }
 }
 
 export default ForbiddenError;

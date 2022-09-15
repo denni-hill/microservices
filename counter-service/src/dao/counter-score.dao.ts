@@ -4,7 +4,7 @@ import { BaseDAO } from "./base.dao";
 import { Id } from "./id";
 
 class CounterScoreDAO extends BaseDAO<CounterScore> {
-  protected readonly alias = "CounterScore";
+  protected readonly alias = "Counter score";
   protected readonly entityClass = CounterScore;
 
   async getCounterScores(counterId: Id): Promise<CounterScore[]> {

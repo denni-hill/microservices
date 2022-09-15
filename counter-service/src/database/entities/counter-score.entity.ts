@@ -20,7 +20,7 @@ export class CounterScore {
   @JoinColumn()
   counter: Counter;
 
-  @ManyToOne(() => User, (participant) => participant, {
+  @ManyToOne(() => User, {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
     eager: true
@@ -28,7 +28,7 @@ export class CounterScore {
   @JoinColumn()
   from: User;
 
-  @ManyToOne(() => User, (user) => user, {
+  @ManyToOne(() => User, {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
     eager: true

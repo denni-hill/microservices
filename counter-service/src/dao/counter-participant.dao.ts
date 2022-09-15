@@ -8,7 +8,7 @@ import { DeepPartial } from "./deep-partial";
 import { Id } from "./id";
 
 class CounterParticipantDAO extends BaseDAO<CounterParticipant> {
-  protected readonly alias = "CounterParticipant";
+  protected readonly alias = "Counter participant";
   protected readonly entityClass = CounterParticipant;
 
   override async create(

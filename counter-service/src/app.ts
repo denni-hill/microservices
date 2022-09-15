@@ -5,7 +5,6 @@ import "reflect-metadata";
 import { defaultDataSource } from "./database";
 import router from "./router";
 import BaseError from "./errors/base.error";
-import InternalServerError from "./errors/internal.error";
 import messenger from "./rabbitmq/messenger";
 import logger from "./logger";
 
@@ -18,13 +17,9 @@ app.use(router);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((e, _req, res: Response, next) => {
   if (e instanceof BaseError) {
-    if (e instanceof InternalServerError) {
-      logger.error(e.message, e);
-    }
-
-    logger.warn(e.message, e);
     res.status(e.getStatusCode()).json(e.getResponseBody());
   } else {
+    res.status(500).send("Internal Server Error");
     logger.error("Unknown Error", e);
   }
 });
