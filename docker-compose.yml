@@ -7,7 +7,7 @@ services:
       - database
       - redis
       - rabbitmq
-      - elk
+      # - elk
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -22,7 +22,7 @@ services:
     - database
     - redis
     - rabbitmq
-    - elk
+    # - elk
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run start:dev"
@@ -37,7 +37,7 @@ services:
       - database
       - redis
       - rabbitmq
-      - elk
+      # - elk
     restart: always
     working_dir: "/usr/src/app"
     command: "npm run docker"
@@ -91,30 +91,30 @@ services:
       - 80:80
     env_file:
       - .env
-  elk: 
-    image: sebp/elk
-    container_name: elk_server
-    restart: always
-    volumes:
-      - ./elk-data:/var/lib/elasticsearch
-    ports:
-      - 5601:5601
-      - 9200:9200
-      - 9300:9300
-      - 5044:5044
-  filebeat:
-    image: elastic/filebeat:8.3.3
-    command: -e --strict.perms=false
-    container_name: filebeat_server
-    restart: always
-    volumes:
-      - ./filebeat/conf/docker.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ./filebeat/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt:ro
-      - ./logs:/var/services_logs
-    labels:
-      co.elastic.logs/json.keys_under_root: true
-      co.elastic.logs/json.overwrite_keys: true
-      co.elastic.logs/json.add_error_key: true
-      co.elastic.logs/json.expand_keys: true
-    depends_on:
-      - elk
+  # elk: 
+  #   image: sebp/elk
+  #   container_name: elk_server
+  #   restart: always
+  #   volumes:
+  #     - ./elk-data:/var/lib/elasticsearch
+  #   ports:
+  #     - 5601:5601
+  #     - 9200:9200
+  #     - 9300:9300
+  #     - 5044:5044
+  # filebeat:
+  #   image: elastic/filebeat:8.3.3
+  #   command: -e --strict.perms=false
+  #   container_name: filebeat_server
+  #   restart: always
+  #   volumes:
+  #     - ./filebeat/conf/docker.yml:/usr/share/filebeat/filebeat.yml:ro
+  #     - ./filebeat/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt:ro
+  #     - ./logs:/var/services_logs
+  #   labels:
+  #     co.elastic.logs/json.keys_under_root: true
+  #     co.elastic.logs/json.overwrite_keys: true
+  #     co.elastic.logs/json.add_error_key: true
+  #     co.elastic.logs/json.expand_keys: true
+  #   depends_on:
+  #     - elk
