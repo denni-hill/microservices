@@ -89,11 +89,6 @@ move to auth-service folder and install npm dependencies, using
 npm install
 ```
 
-then to build auth-service run
-```
-npm run build
-```
-
 then to run database migrations run
 ```
 npm run migrate
