@@ -94,6 +94,11 @@ then to build auth-service run
 npm run build
 ```
 
+then to run database migrations run
+```
+npm run migrate
+```
+
 move to counter-service folder and install npm dependencies, using
 ```
 npm install
