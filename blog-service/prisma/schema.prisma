@@ -20,7 +20,12 @@ model User {
   lastName String
   sex Boolean
 
+  blogs UsersOnBlogs[]
   posts Post[]
+
+  isDeleted Boolean @default(false)
+
+  @@map("users")
 }
 
 model Blog {
@@ -30,6 +35,23 @@ model Blog {
 
   posts Post[]
   categories Category[]
+  authors UsersOnBlogs[]
+
+  isDeleted Boolean @default(false)
+
+  @@map("blogs")
+}
+
+model UsersOnBlogs {
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId Int
+
+  blog Blog @relation(fields: [blogId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  blogId Int
+  
+  @@id([userId, blogId])
+
+  @@map("blogs__users")
 }
 
 model Post {
@@ -45,6 +67,10 @@ model Post {
 
   categories CategoriesOnPosts[]
   comments Comment[]
+
+  isDeleted Boolean @default(false)
+
+  @@map("posts")
 }
 
 model Category {
@@ -55,16 +81,19 @@ model Category {
 
   blog Blog @relation(fields: [blogId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   blogId Int
+
+  @@map("categories")
 }
 
 model CategoriesOnPosts {
-  category Category @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Restrict)
-  categoryId Int
-  
   post Post @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   postId Int
 
-  @@id([categoryId, postId])
+  category Category @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  categoryId Int
+
+  @@id([postId, categoryId])
+  @@map("posts__categories")
 }
 
 model Comment {
@@ -77,4 +106,8 @@ model Comment {
 
   post Post @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   postId Int
+
+  isDeleted Boolean @default(false)
+  
+  @@map("comments")
 }

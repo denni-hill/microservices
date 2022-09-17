@@ -1,4 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
+import { DAOModule } from "src/dao/dao.module";
+import { UserController } from "./user.controller";
+import { UserService } from "./user.service";
 
-@Module({})
+@Module({
+  controllers: [UserController],
+  providers: [UserService],
+  imports: [DAOModule]
+})
 export class UserModule {}
