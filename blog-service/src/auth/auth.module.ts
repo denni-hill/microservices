@@ -4,13 +4,13 @@ import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { DAOModule } from "src/dao/dao.module";
 import { AuthHttpConfigService } from "./auth-http-config.service";
-import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { IsAdminGuard } from "./guards/is-admin.guard";
 import { JwtStrategy } from "./strategy";
+import { JwtRegisteredStrategy } from "./strategy/jwt-registered.strategy";
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtRegisteredStrategy, IsAdminGuard],
   imports: [
     DAOModule,
     JwtModule.register({}),

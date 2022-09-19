@@ -50,7 +50,7 @@ export class UserDAO {
       return await this.prisma.user.findMany({ where: { isDeleted: false } });
     } else
       return await this.prisma.user.findFirst({
-        where: { id: userId, isDeleted: false }
+        where: { id: userId }
       });
   }
 

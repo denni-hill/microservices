@@ -1,13 +1,21 @@
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { UserDAO } from "src/dao/user.dao";
 import { ConfigService } from "@nestjs/config";
 import { AuthPayloadDTO } from "../dto";
 import { AuthService } from "../auth.service";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
-  constructor(private authService: AuthService, config: ConfigService) {
+export class JwtRegisteredStrategy extends PassportStrategy(
+  Strategy,
+  "jwt-registered"
+) {
+  constructor(
+    private userDAO: UserDAO,
+    private authService: AuthService,
+    config: ConfigService
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -22,6 +30,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     if (!(await this.authService.isAccessTokenValid(accessToken)))
       throw new UnauthorizedException();
 
-    return { auth: payload };
+    const user = await this.userDAO.getByAuthUserId(payload.id);
+    if (user === null)
+      throw new UnauthorizedException(
+        "This auth user is not registered in blog service"
+      );
+
+    return { ...user, auth: payload };
   }
 }

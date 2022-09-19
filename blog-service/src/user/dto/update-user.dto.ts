@@ -34,4 +34,9 @@ export class UpdateUserDTO {
   @IsBoolean()
   @IsNotEmpty()
   sex?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @IsNotEmpty()
+  isAdmin?: boolean;
 }

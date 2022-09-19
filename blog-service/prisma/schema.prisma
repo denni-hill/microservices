@@ -19,6 +19,7 @@ model User {
   firstName String 
   lastName String
   sex Boolean
+  isAdmin Boolean @default(false)
 
   blogs UsersOnBlogs[]
   posts Post[]

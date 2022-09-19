@@ -1,32 +1,8 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsInt,
-  IsBoolean,
-  MinLength,
-  MaxLength,
-  Min
-} from "class-validator";
+import { IsBoolean, IsOptional } from "class-validator";
+import { RegisterUserDTO } from "./register-user.dto";
 
-export class CreateUserDTO {
-  @IsInt()
-  @IsNotEmpty()
-  @Min(1)
-  authUserId: number;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(128)
-  firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(128)
-  lastName: string;
-
+export class CreateUserDTO extends RegisterUserDTO {
+  @IsOptional()
   @IsBoolean()
-  @IsNotEmpty()
-  sex: boolean;
+  isAdmin?: boolean;
 }
