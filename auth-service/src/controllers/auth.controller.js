@@ -7,8 +7,7 @@ class AuthController {
     try {
       const { accessToken, refreshToken } = await AuthService.login(req.body);
       logger.info("User successfull authorization", {
-        email: req.body.email,
-        password_hash: req.body.password_hash
+        email: req.body.email
       });
       return res.status(200).json({ accessToken, refreshToken });
     } catch (e) {

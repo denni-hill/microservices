@@ -10,12 +10,18 @@ const { validate, build } = require("chain-validator-js");
 const getUserHash = require("./get-user-hash");
 const { v4: uuid } = require("uuid");
 const BaseService = require("./base.service");
+const AuthorizationError = require("../errors/authorization.error");
 
 function getTokensPair(user) {
   if (user === undefined) throw new InternalServerError("User is undefined");
 
+  const userData = { ...user };
+  delete userData.hash;
+  delete userData.created_at;
+  delete userData.updated_at;
+
   const accessToken = jwt.sign(
-    { ...user, token_uuid: uuid() },
+    { ...userData, token_uuid: uuid() },
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_TTL * 1000,
@@ -24,7 +30,7 @@ function getTokensPair(user) {
   );
 
   const refreshToken = jwt.sign(
-    { ...user, token_uuid: uuid() },
+    { id: userData.id, token_uuid: uuid() },
     process.env.REFRESH_TOKEN_SECRET,
     {
       issuer: `${process.env.DOMAIN}`
@@ -49,7 +55,7 @@ class AuthService extends BaseService {
     const user = await UserDAO.getUserByHash(getUserHash(email, password_hash));
 
     if (user === undefined)
-      throw new NotFoundError({ email, password_hash }, "User");
+      throw new AuthorizationError("Wrong credentials provided");
 
     const { accessToken, refreshToken } = getTokensPair(user);
 
