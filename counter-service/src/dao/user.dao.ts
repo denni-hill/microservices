@@ -68,7 +68,7 @@ class UserDAO extends BaseDAO<User> implements CanSoftDeleteDAO {
       );
     }
 
-    if (throwErrorsOptions.notFound && user === undefined)
+    if (throwErrorsOptions.notFound && user === null)
       throw new NotFoundError({ nickname, digits }, this.alias);
 
     return user;
@@ -93,7 +93,7 @@ class UserDAO extends BaseDAO<User> implements CanSoftDeleteDAO {
       );
     }
 
-    if (throwErrorsOptions.notFound && user === undefined)
+    if (throwErrorsOptions.notFound && user === null)
       throw new NotFoundError({ authUserId }, this.alias);
 
     return user;

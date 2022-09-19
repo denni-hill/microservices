@@ -108,7 +108,7 @@ export abstract class BaseDAO<T extends { id: Id }>
       );
     }
 
-    if (throwErrorsOptions.notFound && entity === undefined)
+    if (throwErrorsOptions.notFound && entity === null)
       throw new NotFoundError({ id }, this.alias);
 
     return entity;

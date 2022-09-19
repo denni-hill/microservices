@@ -126,20 +126,18 @@ const userService = new UserService();
 messenger.addEventListener("connect", (messenger) => {
   messenger.consumeMessages("auth-user-deleted", async (msg) => {
     const authUserId = JSON.parse(msg.content.toString());
+    try {
+      await userService.deleteUserByAuthId(authUserId);
 
-    userService
-      .deleteUserByAuthId(authUserId)
-      .then(() => {
-        logger.info("User deleted on auth-user-deleted event", {
-          authUserId
-        });
-      })
-      .catch((e) => {
-        logger.error(
-          "Error occured during deleting user on auth-user-delted event",
-          e
-        );
+      logger.info("User deleted on auth-user-deleted event", {
+        authUserId
       });
+    } catch (e) {
+      logger.error(
+        "Error occured during deleting user on auth-user-deleted event",
+        e
+      );
+    }
   });
 });
 

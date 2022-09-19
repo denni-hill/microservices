@@ -38,7 +38,7 @@ export const auth =
       let user: User = undefined;
       if (!options.onlyCheckAccessToken) {
         user = await userService.getUserByUserAuthId(authUserData.id);
-        if (user === undefined)
+        if (user === null)
           throw new AuthorizationError(
             "Authorized user is not registered in counter service"
           );
