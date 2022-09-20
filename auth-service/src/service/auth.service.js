@@ -151,8 +151,8 @@ class AuthService extends BaseService {
     let user;
     try {
       user = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    } catch (e) {
-      throw new InternalServerError("Access token is invalid", e);
+    } catch {
+      return false;
     }
 
     if (user.isInternalServiceToken === true) return true;
