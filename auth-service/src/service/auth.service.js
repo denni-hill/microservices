@@ -24,7 +24,7 @@ function getTokensPair(user) {
     { ...userData, token_uuid: uuid() },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.ACCESS_TOKEN_TTL * 1000,
+      expiresIn: process.env.ACCESS_TOKEN_TTL + "s",
       issuer: `${process.env.DOMAIN}`
     }
   );
