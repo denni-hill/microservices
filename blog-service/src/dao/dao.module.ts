@@ -19,6 +19,14 @@ import { UserDAO } from "./user.dao";
     CategoryDAO,
     CommentDAO
   ],
-  exports: [UserDAO]
+  exports: [
+    UserDAO,
+    BlogDAO,
+    PostDAO,
+    PostCategoryDAO,
+    BlogAuthorDAO,
+    CategoryDAO,
+    CommentDAO
+  ]
 })
 export class DAOModule {}

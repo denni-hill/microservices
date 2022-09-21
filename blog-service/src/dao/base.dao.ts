@@ -4,7 +4,14 @@ import {
   BaseEntityWithId
 } from "src/typeorm/entities";
 import logger from "src/winston/logger";
-import { DataSource, FindOneOptions, Repository } from "typeorm";
+import {
+  DataSource,
+  FindManyOptions,
+  FindOneOptions,
+  IsNull,
+  Not,
+  Repository
+} from "typeorm";
 import {
   DefaultThrowErrorsOptions,
   PaginationOptions,
@@ -180,6 +187,41 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
 export abstract class BaseDAOWithSoftDelete<
   T extends BaseEntityWithDeletedAtTimestamp
 > extends BaseDAO<T> {
+  async getDeletedById(
+    id: number,
+    throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
+  ): Promise<T | null> {
+    let entity: T;
+    try {
+      entity = await this.repository.findOne({
+        where: { id },
+        withDeleted: true
+      } as FindOneOptions<T>);
+    } catch (e) {
+      logger.error(`Could not get ${this.alias} in database`, {
+        error: e,
+        id
+      });
+      throw e;
+    }
+
+    if (entity === null && throwErrorsOptions.notFound) {
+      logger.info(`${this.alias} is not found by id exception thrown`, { id });
+      throw new NotFoundException(`${this.alias} in not found`);
+    }
+
+    return entity;
+  }
+
+  async getAllDeleted(): Promise<T[]> {
+    try {
+      return this.repository.find({
+        where: { deletedAt: Not(IsNull()) },
+        withDeleted: true
+      } as FindManyOptions<T>);
+    } catch (e) {}
+  }
+
   async softDelete(id: number): Promise<T> {
     const entity = await this.getById(id, { notFound: true });
     try {
@@ -194,7 +236,7 @@ export abstract class BaseDAOWithSoftDelete<
   }
 
   async recover(id: number): Promise<T> {
-    const entity = await this.getById(id, { notFound: true });
+    const entity = await this.getDeletedById(id, { notFound: true });
     try {
       return await this.repository.recover(entity);
     } catch (e) {
