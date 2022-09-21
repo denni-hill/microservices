@@ -9,7 +9,7 @@ export const isCounterParticipant: { (counterIdParamKey: string): Handler } =
       if (req.user === undefined) throw new AuthorizationError();
 
       if (
-        req.user.isAdmin !== true &&
+        req.user.auth.is_admin !== true &&
         !(await counterService.isUserCounterParticipant(
           req.user.id,
           Number(req.params[counterIdParamKey])

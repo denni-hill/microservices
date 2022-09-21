@@ -20,7 +20,6 @@ router.post(
   json(),
   (req, _res, next) => {
     req.body.authUserId = req.user.auth.id;
-    delete req.body.isAdmin;
     next();
   },
   userController.createUser

@@ -15,10 +15,6 @@ router.put(
   auth(),
   json(),
   userIdMocker,
-  (req, _res, next) => {
-    delete req.body.isAdmin;
-    next();
-  },
   userController.updateUser("userId")
 );
 

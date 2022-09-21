@@ -39,6 +39,7 @@ let clientAxios: AxiosInstance;
 const testUserData = {
   first_name: "Test",
   last_name: "Test",
+  is_admin: true,
   email: "test@test.com",
   password_hash: crypto.createHash("sha256").update("bla-bla-bla").digest("hex")
 };
@@ -91,13 +92,6 @@ describe("tests users routes", () => {
     expect(counterUser).toMatchObject({
       nickname: "test",
       sex: true
-    });
-  });
-
-  test("make counter user admin", async () => {
-    userService.updateUser(counterUser.id, {
-      ...counterUser,
-      isAdmin: true
     });
   });
 

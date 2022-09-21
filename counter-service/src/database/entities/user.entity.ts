@@ -24,9 +24,6 @@ export class User {
   @Column()
   digits: number;
 
-  @Column({ default: false })
-  isAdmin: boolean;
-
   @Column()
   sex: boolean;
 

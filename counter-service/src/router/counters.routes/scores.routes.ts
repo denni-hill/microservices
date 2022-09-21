@@ -12,7 +12,7 @@ const canEditScore: { (counterScoreIdParamKey: string): Handler } =
     try {
       if (req.user === undefined) throw new AuthorizationError();
       if (
-        req.user.isAdmin !== true &&
+        req.user.auth.is_admin !== true &&
         !(await counterScoreService.isScoreAuthor(
           Number(req.params[counterScoreIdParamKey]),
           req.user.id

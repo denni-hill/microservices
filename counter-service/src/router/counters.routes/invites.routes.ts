@@ -23,7 +23,7 @@ router.get(
   async (req, _res, next) => {
     try {
       if (
-        req.user.isAdmin !== true &&
+        req.user.auth.is_admin !== true &&
         !(await counterInviteService.isInviteReciever(
           Number(req.params.inviteId),
           req.user.id
@@ -44,7 +44,7 @@ router.delete(
   async (req, _res, next) => {
     try {
       if (
-        req.user.isAdmin !== true &&
+        req.user.auth.is_admin !== true &&
         !(await counterInviteService.isInviteReciever(
           Number(req.params.inviteId),
           req.user.id

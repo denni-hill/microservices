@@ -10,7 +10,6 @@ import { Id } from "../dao/id";
 export interface UserDTO {
   nickname: string;
   sex: boolean;
-  isAdmin?: boolean;
   digits?: number;
   authUserId?: number;
 }
@@ -27,8 +26,7 @@ const UserDTOValidationRules = () => ({
     .contains(" ")
     .withMessage("should not contain spaces")
     .isLength({ min: 2, max: 20 }),
-  sex: build().isBoolean(),
-  isAdmin: build().optional().isBoolean()
+  sex: build().isBoolean()
 });
 
 //creates 4-length number to allow nickname collisions in [1000, 9999] to be easy to parse
