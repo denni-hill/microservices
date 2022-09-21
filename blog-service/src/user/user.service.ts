@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UserEntity } from "src/typeorm/entities";
 import { UserDAO } from "../dao/user.dao";
 import { CreateUserDTO, UpdateUserDTO } from "./dto";
 
@@ -6,23 +7,23 @@ import { CreateUserDTO, UpdateUserDTO } from "./dto";
 export class UserService {
   constructor(private userDAO: UserDAO) {}
 
-  create(dto: CreateUserDTO) {
+  create(dto: CreateUserDTO): Promise<UserEntity> {
     return this.userDAO.create(dto);
   }
 
-  get(id: number) {
+  get(id: number): Promise<UserEntity> {
     return this.userDAO.getById(id);
   }
 
-  getAll() {
+  getAll(): Promise<UserEntity[]> {
     return this.userDAO.getAll();
   }
 
-  update(id: number, dto: UpdateUserDTO) {
+  update(id: number, dto: UpdateUserDTO): Promise<UserEntity> {
     return this.userDAO.update(id, dto);
   }
 
-  delete(id: number) {
+  delete(id: number): Promise<void> {
     return this.userDAO.delete(id);
   }
 }
