@@ -1,21 +1,13 @@
 import {
   IsNotEmpty,
   IsString,
-  IsInt,
   IsBoolean,
   MinLength,
   MaxLength,
-  Min,
   IsOptional
 } from "class-validator";
 
 export class UpdateUserDTO {
-  @IsOptional()
-  @IsInt()
-  @IsNotEmpty()
-  @Min(1)
-  authUserId?: number;
-
   @IsOptional()
   @IsString()
   @IsNotEmpty()

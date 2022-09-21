@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import logger from "src/winston/logger";
+import logger from "../winston/logger";
 
 @Injectable()
 export class AuthService {

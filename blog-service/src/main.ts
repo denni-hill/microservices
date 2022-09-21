@@ -14,7 +14,7 @@ async function bootstrap() {
         return new UnprocessableEntityException(
           errors.map(({ property, constraints }) => ({
             property,
-            messages: Object.keys(constraints)
+            constraints
           }))
         );
       }

@@ -9,11 +9,11 @@ import {
   Post,
   UseGuards
 } from "@nestjs/common";
-import { User } from "src/auth/decorators";
-import { UserData } from "src/auth/dto";
-import { JwtAuthGuard } from "src/auth/guards";
-import { IsAdminGuard } from "src/auth/guards/is-admin.guard";
-import { JwtAuthRegisteredGuard } from "src/auth/guards/jwt-auth-registered.guard";
+import { User } from "../auth/decorators";
+import { UserData } from "../auth/dto";
+import { JwtAuthGuard } from "../auth/guards";
+import { IsAdminGuard } from "../auth/guards/is-admin.guard";
+import { JwtAuthRegisteredGuard } from "../auth/guards/jwt-auth-registered.guard";
 import { CreateUserDTO, UpdateUserDTO } from "./dto";
 import { RegisterUserDTO } from "./dto/register-user.dto";
 import { UserService } from "./user.service";
@@ -50,7 +50,7 @@ export class UserController {
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Get()
   getAll() {
-    return this.userService.get();
+    return this.userService.getAll();
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
@@ -63,12 +63,6 @@ export class UserController {
   @Patch(":id")
   update(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateUserDTO) {
     return this.userService.update(id, dto);
-  }
-
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Post(":id")
-  restore(@Param("id", ParseIntPipe) id: number) {
-    return this.userService.restore(id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)

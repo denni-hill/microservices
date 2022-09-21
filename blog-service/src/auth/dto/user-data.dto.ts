@@ -1,6 +1,6 @@
-import { User } from "@prisma/client";
+import { UserEntity } from "src/typeorm/entities";
 import { AuthPayloadDTO } from "./auth-payload.dto";
 
-export interface UserData extends User {
+export interface UserData extends UserEntity {
   auth: AuthPayloadDTO;
 }

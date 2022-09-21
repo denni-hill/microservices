@@ -1,135 +1,71 @@
 import {
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException
 } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
-import { CreateUserDTO, UpdateUserDTO } from "src/user/dto";
-import logger from "src/winston/logger";
+import { UserEntity } from "src/typeorm/entities";
+import { TypeormService } from "src/typeorm/typeorm.service";
+import logger from "../winston/logger";
+import { BaseDAO, DeepPartial } from "./base.dao";
+import { DefaultThrowErrorsOptions, ThrowErrorsOptions } from "./misc";
 
 @Injectable()
-export class UserDAO {
-  constructor(private prisma: PrismaService) {}
+export class UserDAO extends BaseDAO<UserEntity> {
+  constructor(typeORM: TypeormService) {
+    super(typeORM.defaultDataSource, UserEntity, "User");
+  }
 
-  async create(userDTO: CreateUserDTO) {
-    if (
-      (await this.prisma.user.count({
-        where: {
-          authUserId: userDTO.authUserId
-        }
-      })) > 0
-    )
+  async create(dto: DeepPartial<UserEntity>): Promise<UserEntity> {
+    if (await this.isAuthUserIdRegistered(dto.authUserId))
       throw new ConflictException(
-        "This auth user id is already registered in blog service"
+        `${this.alias} with given auth user id is already registered`
       );
 
+    return super.create(dto);
+  }
+
+  async getByAuthUserId(
+    authUserId: number,
+    throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
+  ): Promise<UserEntity | null> {
+    let user: UserEntity;
     try {
-      return this.prisma.user.create({
-        data: userDTO
+      user = await this.repository.findOne({
+        where: { authUserId }
       });
     } catch (e) {
-      logger.error("Could not create user in database", {
+      logger.error(`Could not get ${this.alias} by auth user id in database`, {
         error: e,
-        data: userDTO
-      });
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async getByAuthUserId(authUserId: number) {
-    return await this.prisma.user.findUnique({
-      where: {
         authUserId
-      }
-    });
-  }
-
-  async get(userId?: number) {
-    if (userId === undefined) {
-      return await this.prisma.user.findMany({ where: { isDeleted: false } });
-    } else
-      return await this.prisma.user.findFirst({
-        where: { id: userId }
       });
-  }
+      throw e;
+    }
 
-  async update(userId: number, userDTO: UpdateUserDTO) {
-    if (
-      (await this.prisma.user.count({
-        where: {
-          id: userId
+    if (user === null && throwErrorsOptions.notFound) {
+      logger.info(
+        `${this.alias} is not found by auth user id exception thrown`,
+        {
+          authUserId
         }
-      })) === 0
-    )
-      throw new NotFoundException({
-        message: "User is not found",
-        id: userId
-      });
+      );
+      throw new NotFoundException(`${this.alias} is not found`);
+    }
 
-    return await this.prisma.user.update({
-      where: {
-        id: userId
-      },
-      data: userDTO
-    });
+    return user;
   }
 
-  async delete(userId: number) {
-    if (
-      (await this.prisma.user.count({
-        where: {
-          id: userId
+  async isAuthUserIdRegistered(authUserId: number): Promise<boolean> {
+    try {
+      return (await this.repository.count({ where: { authUserId } })) > 0;
+    } catch (e) {
+      logger.error(
+        `Could not check if ${this.alias} with given auth user id is registered in database`,
+        {
+          error: e,
+          authUserId
         }
-      })) === 0
-    )
-      throw new NotFoundException({
-        message: "User is not found",
-        id: userId
-      });
-
-    return await this.prisma.user.delete({
-      where: { id: userId }
-    });
-  }
-
-  async softDelete(userId: number) {
-    if (
-      (await this.prisma.user.count({
-        where: {
-          id: userId,
-          isDeleted: false
-        }
-      })) === 0
-    )
-      throw new NotFoundException({
-        message: "User is not found",
-        id: userId
-      });
-
-    return await this.prisma.user.updateMany({
-      where: { id: userId, isDeleted: false },
-      data: { isDeleted: true }
-    });
-  }
-
-  async restore(userId: number) {
-    if (
-      (await this.prisma.user.count({
-        where: {
-          id: userId,
-          isDeleted: true
-        }
-      })) === 0
-    )
-      throw new NotFoundException({
-        message: "User is not found",
-        id: userId
-      });
-
-    return await this.prisma.user.updateMany({
-      where: { id: userId, isDeleted: true },
-      data: { isDeleted: false }
-    });
+      );
+      throw e;
+    }
   }
 }
