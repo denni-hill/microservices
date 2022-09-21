@@ -15,7 +15,6 @@ import { JwtAuthGuard } from "../auth/guards";
 import { IsAdminGuard } from "../auth/guards/is-admin.guard";
 import { JwtAuthRegisteredGuard } from "../auth/guards/jwt-auth-registered.guard";
 import { CreateUserDTO, UpdateUserDTO } from "./dto";
-import { RegisterUserDTO } from "./dto/register-user.dto";
 import { UserService } from "./user.service";
 
 @Controller("users")
@@ -24,7 +23,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/register")
-  register(@Body() dto: RegisterUserDTO) {
+  register(@Body() dto: CreateUserDTO) {
     return this.userService.create(dto);
   }
 
@@ -37,7 +36,6 @@ export class UserController {
   @UseGuards(JwtAuthRegisteredGuard)
   @Patch("me")
   updateMe(@User() user: UserData, @Body() dto: UpdateUserDTO) {
-    delete dto.isAdmin;
     return this.userService.update(user.id, dto);
   }
 

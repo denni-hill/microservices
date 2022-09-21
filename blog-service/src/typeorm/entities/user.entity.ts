@@ -14,9 +14,6 @@ export class UserEntity extends BaseEntity {
   @Column()
   sex: boolean;
 
-  @Column({ default: false })
-  isAdmin: boolean;
-
   @Column({ type: "integer", unique: true })
   authUserId: number;
 

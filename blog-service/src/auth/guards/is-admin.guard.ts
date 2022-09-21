@@ -15,6 +15,6 @@ export class IsAdminGuard implements CanActivate {
     const user = context.switchToHttp().getRequest().user as UserData;
     if (user === undefined) throw new UnauthorizedException();
 
-    return user.isAdmin === true;
+    return user.auth.is_admin === true;
   }
 }
