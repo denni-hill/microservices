@@ -7,35 +7,39 @@ import { PostEntity } from "src/typeorm/entities";
 export class PostService {
   constructor(private postDAO: PostDAO) {}
 
-  create(dto: DeepPartial<PostEntity>): Promise<PostEntity> {
-    return this.postDAO.create(dto);
+  async create(dto: DeepPartial<PostEntity>): Promise<PostEntity> {
+    return await this.postDAO.create(dto);
   }
 
-  update(id: number, dto: DeepPartial<PostEntity>): Promise<PostEntity> {
-    return this.postDAO.update(id, dto);
+  async update(id: number, dto: DeepPartial<PostEntity>): Promise<PostEntity> {
+    return await this.postDAO.update(id, dto);
   }
 
-  getAll(): Promise<PostEntity[]> {
-    return this.postDAO.getAll();
+  async getAll(): Promise<PostEntity[]> {
+    return await this.postDAO.getAll();
   }
 
-  getById(id: number): Promise<PostEntity> {
-    return this.postDAO.getById(id);
+  async getById(id: number): Promise<PostEntity> {
+    return await this.postDAO.getById(id);
   }
 
-  softDelete(id: number): Promise<PostEntity> {
-    return this.postDAO.softDelete(id);
+  async getBlogPosts(blogId: number): Promise<PostEntity[]> {
+    return await this.postDAO.getBlogPosts(blogId);
   }
 
-  getDeletedById(id: number): Promise<PostEntity> {
-    return this.postDAO.getDeletedById(id);
+  async softDelete(id: number): Promise<PostEntity> {
+    return await this.postDAO.softDelete(id);
   }
 
-  recover(id: number): Promise<PostEntity> {
-    return this.postDAO.recover(id);
+  async getDeletedById(id: number): Promise<PostEntity> {
+    return await this.postDAO.getDeletedById(id);
   }
 
-  delete(id: number): Promise<void> {
-    return this.postDAO.delete(id, { notFound: true });
+  async recover(id: number): Promise<PostEntity> {
+    return await this.postDAO.recover(id);
+  }
+
+  async delete(id: number): Promise<void> {
+    return await this.postDAO.delete(id, { notFound: true });
   }
 }

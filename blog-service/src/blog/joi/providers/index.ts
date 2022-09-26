@@ -1,1 +1,1 @@
-export * from "./blog-joi-schema.provider";
+export * from "./blog-dto-joi-schema.provider";

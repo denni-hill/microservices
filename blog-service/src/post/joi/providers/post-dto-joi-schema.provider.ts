@@ -3,11 +3,11 @@ import Joi, { ObjectSchema } from "joi";
 import { BlogDAO } from "src/dao/blog.dao";
 import { UserDAO } from "src/dao/user.dao";
 import { parseIntSchema } from "src/joi/customs";
-import { JoiSchemaProvider } from "src/joi/providers/joi-schema.provider";
+import { JoiSchemaProvider } from "src/joi/providers";
 import { PostDTO, TransformedPostDTO } from "src/post/dto";
 
 @Injectable()
-export class PostJoiSchemaProvider implements JoiSchemaProvider {
+export class PostDTOJoiSchemaProvider implements JoiSchemaProvider {
   constructor(private blogDAO: BlogDAO, private userDAO: UserDAO) {}
 
   get schema(): ObjectSchema<TransformedPostDTO> {

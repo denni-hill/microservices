@@ -27,8 +27,8 @@ import { ExceptionsFilter } from "./exceptions.filter";
     AuthModule,
     UserModule,
     DAOModule,
-    BlogAuthorModule,
     PostModule,
+    BlogAuthorModule,
     BlogModule,
     TypeormModule
   ]

@@ -11,7 +11,7 @@ import {
 import { IsAdminGuard, JwtAuthRegisteredGuard } from "src/auth/guards";
 import { BlogService } from "./blog.service";
 import { BlogDTO } from "./dto";
-import { CreateBlogDTOValidationPipe } from "./joi/pipes/create-blog-dto-validation.pipe";
+import { CreateBlogDTOValidationPipe } from "./joi/pipes";
 
 @Controller("blogs")
 export class BlogController {

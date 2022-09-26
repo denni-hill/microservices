@@ -4,14 +4,14 @@ import { UserData } from "src/auth/dto";
 import { IsAdminGuard, JwtAuthRegisteredGuard } from "src/auth/guards";
 import { DeepPartial } from "src/dao/base.dao";
 import { PostEntity } from "src/typeorm/entities";
-import { CreatePostValidationPipe } from "./joi/pipes";
+import { CreatePostDTOValidationPipe } from "./joi/pipes";
 import { PostService } from "./post.service";
 
 @Controller("posts")
 export class PostController {
   constructor(private postService: PostService) {}
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard, CreatePostValidationPipe)
+  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard, CreatePostDTOValidationPipe)
   @Post()
   async createPost(
     @User() user: UserData,

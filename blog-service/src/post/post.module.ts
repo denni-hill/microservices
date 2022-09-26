@@ -2,13 +2,18 @@ import { Module } from "@nestjs/common";
 import { PostService } from "./post.service";
 import { PostController } from "./post.controller";
 import { DAOModule } from "src/dao/dao.module";
-import { CreatePostValidationPipe } from "./joi/pipes";
-import { PostJoiSchemaProvider } from "./joi/providers";
+import { CreatePostDTOValidationPipe } from "./joi/pipes";
+import { PostDTOJoiSchemaProvider } from "./joi/providers";
+import { BlogPostController } from "./blog-post.controller";
 
 @Module({
-  providers: [PostService, PostJoiSchemaProvider, CreatePostValidationPipe],
-  controllers: [PostController],
+  providers: [
+    PostService,
+    PostDTOJoiSchemaProvider,
+    CreatePostDTOValidationPipe
+  ],
+  controllers: [PostController, BlogPostController],
   imports: [DAOModule],
-  exports: [PostService, PostJoiSchemaProvider]
+  exports: [PostService, PostDTOJoiSchemaProvider]
 })
 export class PostModule {}
