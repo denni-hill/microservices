@@ -5,8 +5,18 @@ import { UserModule } from "./user/user.module";
 import { DAOModule } from "./dao/dao.module";
 import { BlogModule } from "./blog/blog.module";
 import { TypeormModule } from "./typeorm/typeorm.module";
+import { PostModule } from "./post/post.module";
+import { BlogAuthorModule } from "./blog-author/blog-author.module";
 import path from "path";
+import { APP_FILTER } from "@nestjs/core";
+import { ExceptionsFilter } from "./exceptions.filter";
 @Module({
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ExceptionsFilter
+    }
+  ],
   imports: [
     ConfigModule.forRoot({
       envFilePath: [
@@ -17,6 +27,8 @@ import path from "path";
     AuthModule,
     UserModule,
     DAOModule,
+    BlogAuthorModule,
+    PostModule,
     BlogModule,
     TypeormModule
   ]

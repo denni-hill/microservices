@@ -43,6 +43,10 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     return this.dataSource.getRepository(this.entityTarget);
   }
 
+  get notFoundErrorMessage(): string {
+    return `${this.alias} is not found`;
+  }
+
   async create(dto: DeepPartial<T>): Promise<T> {
     let newEntity: T;
     try {
@@ -96,7 +100,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
 
     if (entity === null && throwErrorsOptions.notFound) {
       logger.info(`${this.alias} is not found by id exception thrown`, { id });
-      throw new NotFoundException(`${this.alias} in not found`);
+      throw new NotFoundException(this.notFoundErrorMessage);
     }
 
     return entity;
@@ -152,7 +156,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     }
 
     if (affectedRowsCount === 0 && throwErrorsOptions.notFound)
-      throw new NotFoundException(`${this.alias} is not found`);
+      throw new NotFoundException(this.notFoundErrorMessage);
   }
 
   async isExist(id: number): Promise<boolean> {
@@ -207,7 +211,7 @@ export abstract class BaseDAOWithSoftDelete<
 
     if (entity === null && throwErrorsOptions.notFound) {
       logger.info(`${this.alias} is not found by id exception thrown`, { id });
-      throw new NotFoundException(`${this.alias} in not found`);
+      throw new NotFoundException(this.notFoundErrorMessage);
     }
 
     return entity;

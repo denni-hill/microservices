@@ -1,17 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { BlogDAO } from "src/dao/blog.dao";
 import { BlogEntity } from "src/typeorm/entities";
-import { CreateBlogDTO, UpdateBlogDTO } from "./dto";
+import { BlogDTO } from "./dto";
 
 @Injectable()
 export class BlogService {
   constructor(private blogDAO: BlogDAO) {}
 
-  create(dto: CreateBlogDTO): Promise<BlogEntity> {
+  create(dto: BlogDTO): Promise<BlogEntity> {
     return this.blogDAO.create(dto);
   }
 
-  update(id: number, dto: UpdateBlogDTO): Promise<BlogEntity> {
+  update(id: number, dto: BlogDTO): Promise<BlogEntity> {
     return this.blogDAO.update(id, dto);
   }
 
@@ -23,7 +23,7 @@ export class BlogService {
     return this.blogDAO.getById(id, { notFound: true });
   }
 
-  softDelete(id: number) {
+  softDelete(id: number): Promise<BlogEntity> {
     return this.blogDAO.softDelete(id);
   }
 

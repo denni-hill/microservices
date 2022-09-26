@@ -10,41 +10,42 @@ import {
 } from "@nestjs/common";
 import { IsAdminGuard, JwtAuthRegisteredGuard } from "src/auth/guards";
 import { BlogService } from "./blog.service";
-import { CreateBlogDTO, UpdateBlogDTO } from "./dto";
+import { BlogDTO } from "./dto";
+import { CreateBlogDTOValidationPipe } from "./joi/pipes/create-blog-dto-validation.pipe";
 
-@Controller("blog")
+@Controller("blogs")
 export class BlogController {
   constructor(private blogService: BlogService) {}
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Post()
-  createBlog(@Body() dto: CreateBlogDTO) {
-    return this.blogService.create(dto);
+  async createBlog(@Body(CreateBlogDTOValidationPipe) dto: BlogDTO) {
+    return await this.blogService.create(dto);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Patch(":id")
-  updateBlog(
+  async updateBlog(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateBlogDTO
+    @Body() dto: BlogDTO
   ) {
-    return this.blogService.update(id, dto);
+    return await this.blogService.update(id, dto);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Delete(":id")
-  softDeleteBlog(@Param("id", ParseIntPipe) id: number) {
-    return this.blogService.softDelete(id);
+  async softDeleteBlog(@Param("id", ParseIntPipe) id: number) {
+    return await this.blogService.softDelete(id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Patch(":id/recover")
-  recoverBlog(@Param("id", ParseIntPipe) id: number) {
-    return this.blogService.recover(id);
+  async recoverBlog(@Param("id", ParseIntPipe) id: number) {
+    return await this.blogService.recover(id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Delete(":id/purge")
-  deleteBlog(@Param("id", ParseIntPipe) id: number) {
-    return this.blogService.delete(id);
+  async deleteBlog(@Param("id", ParseIntPipe) id: number) {
+    return await this.blogService.delete(id);
   }
 }
