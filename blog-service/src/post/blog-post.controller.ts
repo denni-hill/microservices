@@ -10,9 +10,9 @@ import {
   Patch,
   Delete
 } from "@nestjs/common";
-import { JwtAuthRegisteredGuard } from "src/auth/guards";
-import { SetBlogIdParamKey, IsBlogAuthorGuard } from "src/blog-author/guards";
-import { InjectAdditionalBlogPostDataInterceptor } from "src/blog/interceptors";
+import { JwtAuthRegisteredGuard } from "../auth/guards";
+import { SetBlogIdParamKey, IsBlogAuthorGuard } from "../blog-author/guards";
+import { InjectAdditionalBlogPostDataInterceptor } from "../blog/interceptors";
 import { TransformedPostDTO } from "./dto";
 import {
   CreatePostDTOValidationPipe,

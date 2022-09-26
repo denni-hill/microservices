@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { CategoryEntity } from "src/typeorm/entities";
-import { TypeormService } from "src/typeorm/typeorm.service";
-import logger from "src/winston/logger";
 import { In } from "typeorm";
+import { CategoryEntity } from "../typeorm/entities";
+import { TypeormService } from "../typeorm/typeorm.service";
+import logger from "../winston/logger";
 import { BaseDAO } from "./base.dao";
 
 @Injectable()

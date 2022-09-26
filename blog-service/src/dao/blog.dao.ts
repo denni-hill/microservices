@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { BlogEntity } from "src/typeorm/entities";
-import { TypeormService } from "src/typeorm/typeorm.service";
+import { BlogEntity } from "../typeorm/entities";
+import { TypeormService } from "../typeorm/typeorm.service";
 import { BaseDAOWithSoftDelete } from "./base.dao";
 
 @Injectable()

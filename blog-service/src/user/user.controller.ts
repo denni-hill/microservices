@@ -16,7 +16,11 @@ import {
   JwtAuthGuard,
   JwtAuthRegisteredGuard
 } from "../auth/guards";
-import { CreateUserDTO, UpdateUserDTO } from "./dto";
+import { UserDTO } from "./dto";
+import {
+  CreateUserDTOValidationPipe,
+  UpdateUserDTOValidationPipe
+} from "./joi/pipes";
 import { UserService } from "./user.service";
 
 @Controller("users")
@@ -25,7 +29,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/register")
-  async register(@Body() dto: CreateUserDTO) {
+  async register(@Body(CreateUserDTOValidationPipe) dto: UserDTO) {
     return await this.userService.create(dto);
   }
 
@@ -37,13 +41,16 @@ export class UserController {
 
   @UseGuards(JwtAuthRegisteredGuard)
   @Patch("me")
-  async updateMe(@User() user: UserData, @Body() dto: UpdateUserDTO) {
+  async updateMe(
+    @User() user: UserData,
+    @Body(UpdateUserDTOValidationPipe) dto: UserDTO
+  ) {
     return await this.userService.update(user.id, dto);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @Post()
-  async create(@Body() dto: CreateUserDTO) {
+  async create(@Body(CreateUserDTOValidationPipe) dto: UserDTO) {
     return await this.userService.create(dto);
   }
 
@@ -63,7 +70,7 @@ export class UserController {
   @Patch(":id")
   async update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateUserDTO
+    @Body(UpdateUserDTOValidationPipe) dto: UserDTO
   ) {
     return await this.userService.update(id, dto);
   }

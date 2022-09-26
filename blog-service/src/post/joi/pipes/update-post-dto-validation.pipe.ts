@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { JoiSchemaValidationPipe } from "src/joi/pipes";
-import { PostDTO, TransformedPostDTO } from "src/post/dto";
+import { JoiSchemaValidationPipe } from "../../../joi/pipes";
+import { PostDTO, TransformedPostDTO } from "../../dto";
 import { PostDTOJoiSchemaProvider } from "../providers";
 
 @Injectable()

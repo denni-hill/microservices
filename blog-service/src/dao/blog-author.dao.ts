@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { BlogAuthorEntity } from "src/typeorm/entities";
-import { TypeormService } from "src/typeorm/typeorm.service";
-import logger from "src/winston/logger";
+import { BlogAuthorEntity } from "../typeorm/entities";
+import { TypeormService } from "../typeorm/typeorm.service";
+import logger from "../winston/logger";
 import { BaseDAO } from "./base.dao";
 import { DefaultThrowErrorsOptions, ThrowErrorsOptions } from "./misc";
 

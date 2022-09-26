@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { UserEntity } from "src/typeorm/entities";
-import { TypeormService } from "src/typeorm/typeorm.service";
+import { UserEntity } from "../typeorm/entities";
+import { TypeormService } from "../typeorm/typeorm.service";
 import logger from "../winston/logger";
 import { BaseDAO, DeepPartial } from "./base.dao";
 import { DefaultThrowErrorsOptions, ThrowErrorsOptions } from "./misc";

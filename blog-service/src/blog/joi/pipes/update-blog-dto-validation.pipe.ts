@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { BlogDTO } from "src/blog/dto";
-import { JoiSchemaValidationPipe } from "src/joi/pipes";
+import { JoiSchemaValidationPipe } from "../../../joi/pipes";
+import { BlogDTO } from "../../dto";
 import { BlogDTOJoiSchemaProvider as BlogDTOJoiSchemaProvider } from "../providers";
 
 @Injectable()

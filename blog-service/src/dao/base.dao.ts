@@ -1,10 +1,5 @@
 import { NotFoundException } from "@nestjs/common";
 import {
-  BaseEntityWithDeletedAtTimestamp,
-  BaseEntityWithId
-} from "src/typeorm/entities";
-import logger from "src/winston/logger";
-import {
   DataSource,
   FindManyOptions,
   FindOneOptions,
@@ -12,6 +7,11 @@ import {
   Not,
   Repository
 } from "typeorm";
+import {
+  BaseEntityWithId,
+  BaseEntityWithDeletedAtTimestamp
+} from "../typeorm/entities";
+import logger from "../winston/logger";
 import {
   DefaultThrowErrorsOptions,
   PaginationOptions,

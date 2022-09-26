@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import Joi, { ObjectSchema } from "joi";
-import { BlogDAO } from "src/dao/blog.dao";
-import { UserDAO } from "src/dao/user.dao";
-import { parseIntSchema } from "src/joi/customs";
-import { JoiSchemaProvider } from "src/joi/providers";
-import { PostDTO, TransformedPostDTO } from "src/post/dto";
+import { BlogDAO } from "../../../dao/blog.dao";
+import { UserDAO } from "../../../dao/user.dao";
+import { parseIntSchema } from "../../../joi/customs";
+import { JoiSchemaProvider } from "../../../joi/providers";
+import { TransformedPostDTO, PostDTO } from "../../dto";
 
 @Injectable()
 export class PostDTOJoiSchemaProvider implements JoiSchemaProvider {

@@ -7,8 +7,8 @@ import {
   Post,
   UseGuards
 } from "@nestjs/common";
-import { IsAdminGuard, JwtAuthRegisteredGuard } from "src/auth/guards";
-import { BlogAuthorEntity } from "src/typeorm/entities";
+import { JwtAuthRegisteredGuard, IsAdminGuard } from "../auth/guards";
+import { BlogAuthorEntity } from "../typeorm/entities";
 import { BlogAuthorService } from "./blog-author.service";
 import { BlogAuthorDTO } from "./dto";
 

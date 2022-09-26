@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
-import { blogIdMetadataKey } from "src/blog-author/guards";
+import { blogIdMetadataKey } from "../../blog-author/guards";
 
 @Injectable()
 export class InjectAdditionalBlogPostDataInterceptor

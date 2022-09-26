@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { TypeormModule } from "src/typeorm/typeorm.module";
+import { TypeormModule } from "../typeorm/typeorm.module";
 import { BlogAuthorDAO } from "./blog-author.dao";
 import { BlogDAO } from "./blog.dao";
 import { CategoryDAO } from "./category.dao";

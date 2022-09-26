@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { DAOModule } from "src/dao/dao.module";
-import { PostModule } from "src/post/post.module";
+import { DAOModule } from "../dao/dao.module";
+import { PostModule } from "../post/post.module";
 import { BlogController } from "./blog.controller";
 import { BlogService } from "./blog.service";
 import { InjectAdditionalBlogPostDataInterceptor } from "./interceptors";

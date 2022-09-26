@@ -1,17 +1,17 @@
 import { Injectable } from "@nestjs/common";
-import { DeepPartial } from "src/dao/base.dao";
-import { PostDAO } from "src/dao/post.dao";
-import { PostEntity } from "src/typeorm/entities";
+import { PostDAO } from "../dao/post.dao";
+import { PostEntity } from "../typeorm/entities";
+import { TransformedPostDTO } from "./dto";
 
 @Injectable()
 export class PostService {
   constructor(private postDAO: PostDAO) {}
 
-  async create(dto: DeepPartial<PostEntity>): Promise<PostEntity> {
+  async create(dto: TransformedPostDTO): Promise<PostEntity> {
     return await this.postDAO.create(dto);
   }
 
-  async update(id: number, dto: DeepPartial<PostEntity>): Promise<PostEntity> {
+  async update(id: number, dto: TransformedPostDTO): Promise<PostEntity> {
     return await this.postDAO.update(id, dto);
   }
 

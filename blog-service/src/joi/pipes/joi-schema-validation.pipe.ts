@@ -4,7 +4,7 @@ import {
   UnprocessableEntityException
 } from "@nestjs/common";
 import { AsyncValidationOptions, ObjectSchema } from "joi";
-import logger from "src/winston/logger";
+import logger from "../../winston/logger";
 import { DefaultValidationOptions } from "../options";
 
 export interface FieldsMarks<T> {
