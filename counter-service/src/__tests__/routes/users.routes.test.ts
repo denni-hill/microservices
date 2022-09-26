@@ -56,8 +56,7 @@ import userService from "../../service/user.service";
 
 describe("tests users routes", () => {
   test("creating test user in auth service", async () => {
-    authUser = (await authServiceAxios.post("/users/create", testUserData))
-      .data;
+    authUser = (await authServiceAxios.post("/users", testUserData)).data;
   });
 
   test("attempt to login", async () => {

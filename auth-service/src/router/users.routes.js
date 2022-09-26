@@ -15,7 +15,7 @@ router.post(
   UserController.create
 );
 
-router.post("/create", auth, isAdmin, json(), UserController.create);
+router.post("/", auth, isAdmin, json(), UserController.create);
 
 router.get("/:userId", auth, isAdmin, UserController.get);
 

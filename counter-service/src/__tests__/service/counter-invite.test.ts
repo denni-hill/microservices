@@ -81,11 +81,10 @@ beforeAll(async () => {
 
 describe("test counter invite service", () => {
   test("creating test user in auth service", async () => {
-    authUser = (await authServiceAxios.post("/users/create", testAuthUserData))
-      .data;
+    authUser = (await authServiceAxios.post("/users", testAuthUserData)).data;
 
     secondAuthUser = (
-      await authServiceAxios.post("/users/create", anotherAuthUserData)
+      await authServiceAxios.post("/users", anotherAuthUserData)
     ).data;
   });
 

@@ -66,7 +66,7 @@ describe("testing users routes", () => {
 
   test("attempting to create user", async () => {
     try {
-      let response = await axios.post("/users/create", anotherUserData);
+      let response = await axios.post("/users", anotherUserData);
 
       throw new Error("Request succeed unexpectedly!");
     } catch (e) {
@@ -117,7 +117,7 @@ describe("testing users routes", () => {
 
   test("attempting to create user", async () => {
     try {
-      let response = await axios.post("/users/create", anotherUserData);
+      let response = await axios.post("/users", anotherUserData);
 
       throw new Error("Request succeed unexpectedly!");
     } catch (e) {
@@ -184,7 +184,7 @@ describe("testing users routes", () => {
   });
 
   test("attempting to create user", async () => {
-    let response = await axios.post("/users/create", anotherUserData);
+    let response = await axios.post("/users", anotherUserData);
 
     expect(response.status).toBe(201);
 

@@ -72,11 +72,10 @@ beforeAll(async () => {
 
 describe("tests counters scores routes", () => {
   test("creating test user in auth service", async () => {
-    authUser = (await authServiceAxios.post("/users/create", testUserData))
-      .data;
+    authUser = (await authServiceAxios.post("/users", testUserData)).data;
 
     secondAuthUser = (
-      await authServiceAxios.post("/users/create", anotherTestUserData)
+      await authServiceAxios.post("/users", anotherTestUserData)
     ).data;
   });
 

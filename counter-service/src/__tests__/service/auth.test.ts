@@ -57,9 +57,8 @@ describe("Test auth service", () => {
 
   test("creates user in auth service", async () => {
     try {
-      authUser = (
-        await authServiceAxios.post("/users/create", { ...testUserData })
-      ).data;
+      authUser = (await authServiceAxios.post("/users", { ...testUserData }))
+        .data;
     } catch (e) {
       throw e;
     }
