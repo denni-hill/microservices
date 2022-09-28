@@ -23,6 +23,10 @@ export class PostService {
     return await this.postDAO.getById(id);
   }
 
+  async getBlogPost(blogId: number, postId: number): Promise<PostEntity> {
+    return await this.postDAO.getBlogPost(blogId, postId);
+  }
+
   async getBlogPosts(blogId: number): Promise<PostEntity[]> {
     return await this.postDAO.getBlogPosts(blogId);
   }

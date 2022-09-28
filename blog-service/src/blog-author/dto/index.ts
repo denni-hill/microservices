@@ -1,1 +1,2 @@
-export * from "./create-blog-author.dto";
+export * from "./blog-author.dto";
+export * from "./transformed-blog-author.dto";

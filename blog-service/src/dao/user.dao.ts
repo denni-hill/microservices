@@ -28,6 +28,7 @@ export class UserDAO extends BaseDAO<UserEntity> {
     authUserId: number,
     throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<UserEntity | null> {
+    this.validateId(authUserId);
     let user: UserEntity;
     try {
       user = await this.repository.findOne({
@@ -55,6 +56,7 @@ export class UserDAO extends BaseDAO<UserEntity> {
   }
 
   async isAuthUserIdRegistered(authUserId: number): Promise<boolean> {
+    this.validateId(authUserId);
     try {
       return (await this.repository.count({ where: { authUserId } })) > 0;
     } catch (e) {

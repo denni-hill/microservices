@@ -15,6 +15,7 @@ export class CategoryDAO extends BaseDAO<CategoryEntity> {
     blogId: number,
     categoriesId: number[]
   ): Promise<CategoryEntity[]> {
+    this.validateId(blogId);
     try {
       return await this.repository.find({
         where: {

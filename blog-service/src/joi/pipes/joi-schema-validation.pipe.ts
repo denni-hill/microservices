@@ -13,18 +13,18 @@ export interface FieldsMarks<T> {
 }
 
 @Injectable()
-export class JoiSchemaValidationPipe<T, R>
-  implements PipeTransform<T, Promise<R>>
+export class JoiSchemaValidationPipe<InitialType, TransformedType>
+  implements PipeTransform<InitialType, Promise<TransformedType>>
 {
   constructor(
-    private schema: ObjectSchema<R>,
-    private markFields?: FieldsMarks<T>,
-    private options: AsyncValidationOptions = new DefaultValidationOptions()
+    protected schema: ObjectSchema<TransformedType>,
+    protected markFields?: FieldsMarks<InitialType>,
+    protected options: AsyncValidationOptions = new DefaultValidationOptions()
   ) {
     this.applyFieldsMarks();
   }
 
-  async transform(value: T): Promise<R> {
+  async transform(value: InitialType): Promise<TransformedType> {
     try {
       return await this.schema.validateAsync(value, this.options);
     } catch (e) {

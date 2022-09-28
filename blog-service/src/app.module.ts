@@ -24,13 +24,13 @@ import { ExceptionsFilter } from "./exceptions.filter";
         path.join(process.cwd(), "..", ".env")
       ]
     }),
+    TypeormModule,
+    DAOModule,
     AuthModule,
     UserModule,
-    DAOModule,
     PostModule,
     BlogAuthorModule,
-    BlogModule,
-    TypeormModule
+    BlogModule
   ]
 })
 export class AppModule {}

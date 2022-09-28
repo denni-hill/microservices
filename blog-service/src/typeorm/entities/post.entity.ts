@@ -13,10 +13,16 @@ export class PostEntity extends BaseEntity {
   @Column()
   content: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.posts)
+  @ManyToOne(() => UserEntity, (user) => user.posts, {
+    onDelete: "RESTRICT",
+    onUpdate: "CASCADE"
+  })
   author: UserEntity;
 
-  @ManyToOne(() => BlogEntity, (blog) => blog.posts)
+  @ManyToOne(() => BlogEntity, (blog) => blog.posts, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+  })
   blog: BlogEntity;
 
   @OneToMany(() => PostCategoryEntity, (postCategory) => postCategory.post)

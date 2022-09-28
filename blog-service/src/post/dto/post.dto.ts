@@ -1,6 +1,6 @@
 export interface PostDTO {
-  author?: number;
   title?: string;
   content?: string;
-  blog?: number;
+  author?: number | { id: number };
+  blog?: number | { id: number };
 }

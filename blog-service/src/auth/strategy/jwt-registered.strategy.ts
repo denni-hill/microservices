@@ -30,7 +30,9 @@ export class JwtRegisteredStrategy extends PassportStrategy(
     if (!(await this.authService.isAccessTokenValid(accessToken)))
       throw new UnauthorizedException();
 
+    if (payload.id === undefined) throw new UnauthorizedException();
     const user = await this.userDAO.getByAuthUserId(payload.id);
+
     if (user === null)
       throw new UnauthorizedException(
         "This auth user is not registered in blog service"

@@ -7,6 +7,7 @@ import {
   Not,
   Repository
 } from "typeorm";
+import { idSchema } from "../joi/customs";
 import {
   BaseEntityWithId,
   BaseEntityWithDeletedAtTimestamp
@@ -61,7 +62,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
 
     try {
       const result = await this.repository.save(newEntity);
-      logger.info(`${this.alias} is created in database`);
+      logger.info(`${this.alias} was created in database`);
       return result;
     } catch (e) {
       logger.error(`Could not create ${this.alias} in database`, {
@@ -85,6 +86,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     id: number,
     throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<T | null> {
+    this.validateId(id);
     let entity: T;
     try {
       entity = await this.repository.findOne({
@@ -98,15 +100,14 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
       throw e;
     }
 
-    if (entity === null && throwErrorsOptions.notFound) {
-      logger.info(`${this.alias} is not found by id exception thrown`, { id });
+    if (entity === null && throwErrorsOptions.notFound)
       throw new NotFoundException(this.notFoundErrorMessage);
-    }
 
     return entity;
   }
 
   async update(id: number, dto: DeepPartial<T>): Promise<T> {
+    this.validateId(id);
     const newData = { ...dto };
     delete newData.id;
 
@@ -144,6 +145,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     id: number,
     throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<void> {
+    this.validateId(id);
     let affectedRowsCount: number;
     try {
       affectedRowsCount = (await this.repository.delete(id)).affected;
@@ -155,11 +157,14 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
       throw e;
     }
 
-    if (affectedRowsCount === 0 && throwErrorsOptions.notFound)
-      throw new NotFoundException(this.notFoundErrorMessage);
+    if (affectedRowsCount === 0) {
+      if (throwErrorsOptions.notFound)
+        throw new NotFoundException(this.notFoundErrorMessage);
+    } else logger.info(`${this.alias} was deleted in database`);
   }
 
   async isExist(id: number): Promise<boolean> {
+    this.validateId(id);
     try {
       const entity = await this.repository.findOne({
         where: { id }
@@ -186,6 +191,11 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
       take
     };
   }
+
+  protected validateId(id: number) {
+    const result = idSchema.required().label("id").validate(id);
+    if (result.error !== undefined) throw result.error;
+  }
 }
 
 export abstract class BaseDAOWithSoftDelete<
@@ -195,6 +205,7 @@ export abstract class BaseDAOWithSoftDelete<
     id: number,
     throwErrorsOptions: ThrowErrorsOptions = new DefaultThrowErrorsOptions()
   ): Promise<T | null> {
+    this.validateId(id);
     let entity: T;
     try {
       entity = await this.repository.findOne({
@@ -202,7 +213,7 @@ export abstract class BaseDAOWithSoftDelete<
         withDeleted: true
       } as FindOneOptions<T>);
     } catch (e) {
-      logger.error(`Could not get ${this.alias} in database`, {
+      logger.error(`Could not get deleted ${this.alias} in database`, {
         error: e,
         id
       });
@@ -210,7 +221,6 @@ export abstract class BaseDAOWithSoftDelete<
     }
 
     if (entity === null && throwErrorsOptions.notFound) {
-      logger.info(`${this.alias} is not found by id exception thrown`, { id });
       throw new NotFoundException(this.notFoundErrorMessage);
     }
 
@@ -223,13 +233,19 @@ export abstract class BaseDAOWithSoftDelete<
         where: { deletedAt: Not(IsNull()) },
         withDeleted: true
       } as FindManyOptions<T>);
-    } catch (e) {}
+    } catch (e) {
+      logger.error(`Could not get all ${this.alias} in database`);
+      throw e;
+    }
   }
 
   async softDelete(id: number): Promise<T> {
+    this.validateId(id);
     const entity = await this.getById(id, { notFound: true });
     try {
-      return await this.repository.softRemove(entity);
+      const result = await this.repository.softRemove(entity);
+      logger.info(`${this.alias} was softly deleted in database`);
+      return result;
     } catch (e) {
       logger.error(`Could not soft remove ${this.alias} in database`, {
         error: e,
@@ -240,9 +256,12 @@ export abstract class BaseDAOWithSoftDelete<
   }
 
   async recover(id: number): Promise<T> {
+    this.validateId(id);
     const entity = await this.getDeletedById(id, { notFound: true });
     try {
-      return await this.repository.recover(entity);
+      const result = await this.repository.recover(entity);
+      logger.info(`${this.alias} was recovered in database`);
+      return result;
     } catch (e) {
       logger.error(`Could not recover ${this.alias} in database`, {
         error: e,

@@ -7,23 +7,23 @@ import { UserDTO } from "./dto";
 export class UserService {
   constructor(private userDAO: UserDAO) {}
 
-  create(dto: UserDTO): Promise<UserEntity> {
-    return this.userDAO.create(dto);
+  async create(dto: UserDTO): Promise<UserEntity> {
+    return await this.userDAO.create(dto);
   }
 
-  get(id: number): Promise<UserEntity> {
-    return this.userDAO.getById(id);
+  async get(id: number): Promise<UserEntity> {
+    return await this.userDAO.getById(id);
   }
 
-  getAll(): Promise<UserEntity[]> {
-    return this.userDAO.getAll();
+  async getAll(): Promise<UserEntity[]> {
+    return await this.userDAO.getAll();
   }
 
-  update(id: number, dto: UserDTO): Promise<UserEntity> {
-    return this.userDAO.update(id, dto);
+  async update(id: number, dto: UserDTO): Promise<UserEntity> {
+    return await this.userDAO.update(id, dto);
   }
 
-  delete(id: number): Promise<void> {
-    return this.userDAO.delete(id);
+  async delete(id: number): Promise<void> {
+    return await this.userDAO.delete(id, { notFound: true });
   }
 }

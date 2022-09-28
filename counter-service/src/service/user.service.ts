@@ -130,12 +130,7 @@ messenger.addEventListener("connect", (messenger) => {
       logger.info("User deleted on auth-user-deleted event", {
         authUserId
       });
-    } catch (e) {
-      logger.error(
-        "Error occured during deleting user on auth-user-deleted event",
-        e
-      );
-    }
+    } catch {}
   });
 });
 

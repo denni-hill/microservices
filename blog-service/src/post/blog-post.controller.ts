@@ -10,7 +10,7 @@ import {
   Patch,
   Delete
 } from "@nestjs/common";
-import { JwtAuthRegisteredGuard } from "../auth/guards";
+import { IsAdminGuard, JwtAuthRegisteredGuard } from "../auth/guards";
 import { SetBlogIdParamKey, IsBlogAuthorGuard } from "../blog-author/guards";
 import { InjectAdditionalBlogPostDataInterceptor } from "../blog/interceptors";
 import { TransformedPostDTO } from "./dto";
@@ -39,6 +39,14 @@ export class BlogPostController {
     return await this.postService.getBlogPosts(blogId);
   }
 
+  @Get(":id")
+  async getBlogPost(
+    @Param("blogId", ParseIntPipe) blogId: number,
+    @Param("id", ParseIntPipe) postId: number
+  ) {
+    return await this.postService.getBlogPost(blogId, postId);
+  }
+
   @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
   @Patch(":id")
   async updatePost(
@@ -52,5 +60,17 @@ export class BlogPostController {
   @Delete(":id")
   async softDeletePost(@Param("id", ParseIntPipe) postId: number) {
     return await this.postService.softDelete(postId);
+  }
+
+  @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
+  @Patch(":id/recover")
+  async restorePost(@Param("id", ParseIntPipe) postId: number) {
+    return await this.postService.recover(postId);
+  }
+
+  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @Delete(":id/purge")
+  async deletePost(@Param("id", ParseIntPipe) postId: number) {
+    return await this.postService.delete(postId);
   }
 }

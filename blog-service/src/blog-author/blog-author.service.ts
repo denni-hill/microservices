@@ -1,25 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { BlogAuthorDAO } from "../dao/blog-author.dao";
-import { BlogDAO } from "../dao/blog.dao";
-import { UserDAO } from "../dao/user.dao";
 import { BlogAuthorEntity } from "../typeorm/entities";
-import { BlogAuthorDTO } from "./dto";
+import { TransformedBlogAuthorDTO } from "./dto";
 
 @Injectable()
 export class BlogAuthorService {
-  constructor(
-    private blogAuthorDAO: BlogAuthorDAO,
-    private userDAO: UserDAO,
-    private blogDAO: BlogDAO
-  ) {}
+  constructor(private blogAuthorDAO: BlogAuthorDAO) {}
 
-  async assignBlogAuthor(dto: BlogAuthorDTO): Promise<BlogAuthorEntity> {
-    const user = await this.userDAO.getById(dto.userId, { notFound: true });
-    const blog = await this.blogDAO.getById(dto.blogId, { notFound: true });
-    return this.blogAuthorDAO.create({ user, blog });
+  async createBlogAuthor(
+    dto: TransformedBlogAuthorDTO
+  ): Promise<BlogAuthorEntity> {
+    return await this.blogAuthorDAO.create(dto);
   }
 
-  async removeBlogAuthor(id: number): Promise<void> {
-    return this.blogAuthorDAO.delete(id, { notFound: true });
+  async getBlogAuthors(blogId: number): Promise<BlogAuthorEntity[]> {
+    return await this.blogAuthorDAO.getAllBlogAuthors(blogId);
+  }
+
+  async deleteBlogAuthor(blogId: number, userId: number): Promise<void> {
+    return await this.blogAuthorDAO.deleteByBlogIdUserId(blogId, userId, {
+      notFound: true
+    });
   }
 }

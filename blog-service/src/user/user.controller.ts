@@ -48,25 +48,25 @@ export class UserController {
     return await this.userService.update(user.id, dto);
   }
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @UseGuards(JwtAuthGuard, IsAdminGuard)
   @Post()
   async create(@Body(CreateUserDTOValidationPipe) dto: UserDTO) {
     return await this.userService.create(dto);
   }
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @UseGuards(JwtAuthGuard, IsAdminGuard)
   @Get()
   async getAll() {
     return await this.userService.getAll();
   }
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @UseGuards(JwtAuthGuard, IsAdminGuard)
   @Get(":id")
   async findOne(@Param("id", ParseIntPipe) id: number) {
     return await this.userService.get(id);
   }
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @UseGuards(JwtAuthGuard, IsAdminGuard)
   @Patch(":id")
   async update(
     @Param("id", ParseIntPipe) id: number,
@@ -75,7 +75,7 @@ export class UserController {
     return await this.userService.update(id, dto);
   }
 
-  @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
+  @UseGuards(JwtAuthGuard, IsAdminGuard)
   @Delete(":id")
   async delete(@Param("id", ParseIntPipe) id: number) {
     return await this.userService.delete(id);

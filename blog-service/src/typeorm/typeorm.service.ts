@@ -19,7 +19,9 @@ export class TypeormService {
       migrations: ["./migrations"],
       migrationsTableName: "typeorm_migrations"
     });
+  }
 
-    this.defaultDataSource.initialize();
+  async initializeDataSources() {
+    await this.defaultDataSource.initialize();
   }
 }
