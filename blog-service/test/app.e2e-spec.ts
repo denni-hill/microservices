@@ -300,16 +300,21 @@ describe("App e2e", () => {
     });
 
     test("create blog post", async () => {
+      const postCategories = ["1", "2", "3"];
       const postData: PostDTO = {
         title: "Test blog post",
         content: "Test blog content"
       };
       post = await regularUser.httpClient
-        .withJson(postData)
+        .withJson({ ...postData, categories: postCategories })
         .expectStatus(201)
         .expectJsonMatch(postData)
         .post(`${process.env.TEST_APP_BASE_URL}/blogs/${blog.id}/posts`)
         .returns("res.body");
+
+      expect(post.categories.map((cat) => cat.name)).toMatchObject(
+        postCategories
+      );
     });
 
     test("get blog post", async () => {
@@ -338,7 +343,8 @@ describe("App e2e", () => {
     test("update blog post", async () => {
       const postData: PostDTO = {
         title: "Updated test blog post",
-        content: "Updated test blog content"
+        content: "Updated test blog content",
+        categories: []
       };
       post = await regularUser.httpClient
         .withJson(postData)
@@ -348,6 +354,15 @@ describe("App e2e", () => {
           `${process.env.TEST_APP_BASE_URL}/blogs/${blog.id}/posts/${post.id}`
         )
         .returns("res.body");
+
+      const postWithoutCategories = await regularUser.httpClient
+        .expectStatus(200)
+        .get(
+          `${process.env.TEST_APP_BASE_URL}/blogs/${blog.id}/posts/${post.id}`
+        )
+        .returns("res.body");
+
+      expect(postWithoutCategories.categories).toMatchObject([]);
     });
 
     test("delete blog post", async () => {

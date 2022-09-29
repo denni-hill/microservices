@@ -10,6 +10,7 @@ import { BlogAuthorModule } from "./blog-author/blog-author.module";
 import path from "path";
 import { APP_FILTER } from "@nestjs/core";
 import { ExceptionsFilter } from "./exceptions.filter";
+import { CategoryModule } from "./category/category.module";
 @Module({
   providers: [
     {
@@ -30,7 +31,8 @@ import { ExceptionsFilter } from "./exceptions.filter";
     UserModule,
     PostModule,
     BlogAuthorModule,
-    BlogModule
+    BlogModule,
+    CategoryModule
   ]
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
 import { NotFoundException } from "@nestjs/common";
+import Joi from "joi";
 import {
   DataSource,
   FindManyOptions,
@@ -48,10 +49,9 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     return `${this.alias} is not found`;
   }
 
-  async create(dto: DeepPartial<T>): Promise<T> {
-    let newEntity: T;
+  createEntity(dto: DeepPartial<T>): T {
     try {
-      newEntity = this.repository.create(dto);
+      return this.repository.create(dto);
     } catch (e) {
       logger.error(
         `Could not create ${this.alias} entity with typeorm repository create method`,
@@ -59,15 +59,39 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
       );
       throw e;
     }
+  }
+
+  async create(dto: DeepPartial<T>): Promise<T> {
+    const newEntity = this.createEntity(dto);
 
     try {
       const result = await this.repository.save(newEntity);
-      logger.info(`${this.alias} was created in database`);
+      logger.info(`${this.alias} was created in database`, { newEntity });
       return result;
     } catch (e) {
       logger.error(`Could not create ${this.alias} in database`, {
         error: e,
         data: newEntity
+      });
+      throw e;
+    }
+  }
+
+  async createMany(dtos: DeepPartial<T>[]): Promise<T[]> {
+    const newEntities = dtos.map((dto) => this.createEntity(dto));
+
+    try {
+      const result = await this.repository.save(newEntities);
+      result.forEach((newEntity) => {
+        logger.info(`${this.alias} was created in database`, {
+          entity: newEntity
+        });
+      });
+      return result;
+    } catch (e) {
+      logger.error(`Could not create many ${this.alias} in database`, {
+        error: e,
+        data: dtos
       });
       throw e;
     }
@@ -127,6 +151,7 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
       const result = await this.repository.save<T>(entity);
       logger.info(`${this.alias} was updated in database`, {
         id,
+        previousData: entity,
         result,
         data: newData
       });
@@ -174,6 +199,25 @@ export abstract class BaseDAO<T extends BaseEntityWithId> {
     } catch (e) {
       logger.error(`Could not check if ${this.alias} exists in database`, {
         id
+      });
+      throw e;
+    }
+  }
+
+  async deleteMany(ids: number[]): Promise<void> {
+    const idArrayValidationResult = Joi.array()
+      .items(idSchema.required().label("id"))
+      .label("array of id")
+      .validate(ids);
+
+    if (idArrayValidationResult.error) throw idArrayValidationResult.error;
+
+    try {
+      await this.repository.delete(ids);
+    } catch (e) {
+      logger.error(`Could not delete many ${this.alias} in database`, {
+        error: e,
+        ids
       });
       throw e;
     }

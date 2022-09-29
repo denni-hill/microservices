@@ -3,11 +3,12 @@ import { PostEntity } from "../typeorm/entities";
 import { TypeormService } from "../typeorm/typeorm.service";
 import logger from "../winston/logger";
 import { BaseDAOWithSoftDelete } from "./base.dao";
+import { CategoryDAO } from "./category.dao";
 import { DefaultThrowErrorsOptions, ThrowErrorsOptions } from "./misc";
 
 @Injectable()
 export class PostDAO extends BaseDAOWithSoftDelete<PostEntity> {
-  constructor(typeORM: TypeormService) {
+  constructor(typeORM: TypeormService, private categoryDAO: CategoryDAO) {
     super(typeORM.defaultDataSource, PostEntity, "Post");
   }
 

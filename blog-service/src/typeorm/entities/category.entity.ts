@@ -1,20 +1,15 @@
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
-import { BaseEntity } from "./base.entity";
-import { BlogEntity } from "./blog.entity";
-import { PostCategoryEntity } from "./post-cateogory.entity";
+import { Column, Entity, ManyToOne } from "typeorm";
+import { BaseEntityWithId } from "./base.entity";
 import { PostEntity } from "./post.entity";
 
 @Entity({ name: "categories" })
-export class CategoryEntity extends BaseEntity {
+export class CategoryEntity extends BaseEntityWithId {
   @Column()
   name: string;
 
-  @ManyToOne(() => BlogEntity, (blog) => blog.categories, {
+  @ManyToOne(() => PostEntity, (post) => post.categories, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE"
   })
-  blog: BlogEntity;
-
-  @OneToMany(() => PostCategoryEntity, (postCategory) => postCategory.category)
-  posts: PostEntity[];
+  post: PostEntity;
 }

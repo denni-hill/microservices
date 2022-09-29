@@ -3,4 +3,5 @@ export interface PostDTO {
   content?: string;
   author?: number | { id: number };
   blog?: number | { id: number };
+  categories?: string[];
 }
