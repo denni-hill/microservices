@@ -1,20 +1,17 @@
-const { ValidationResult } = require("chain-validator-js/dist/result");
 const BaseError = require("./base.error");
 
 class ValidationError extends BaseError {
-  result = undefined;
-  constructor(result) {
+  error = undefined;
+  constructor(error) {
     super("Validation Error");
-    this.result = result;
+    this.error = error;
   }
 
   getResponseBody() {
-    if (this.result instanceof ValidationResult) {
-      return {
-        statusCode: this.getStatusCode(),
-        message: this.result.errors
-      };
-    } else return this.result;
+    return {
+      statusCode: this.getStatusCode(),
+      message: this.error
+    };
   }
 
   getStatusCode() {

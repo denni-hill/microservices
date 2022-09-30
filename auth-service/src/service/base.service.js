@@ -1,10 +1,10 @@
-const { validate, build } = require("chain-validator-js");
 const ValidationError = require("../errors/validation.error");
+const Joi = require("joi");
 
 class BaseService {
-  async validateId(id) {
-    var validationResult = await validate(id, build().isInt());
-    if (validationResult.failed) throw new ValidationError(validationResult);
+  validateId(id) {
+    const result = Joi.number().integer().min(1).validate(id);
+    if (result.error) throw new ValidationError(result.error);
   }
 }
 

@@ -15,6 +15,7 @@ process.env.REDIS_HOST =
 const redisClient = require("../../redis");
 const UserService = require("../../service/user.service");
 const ValidationError = require("../../errors/validation.error");
+const ConflictError = require("../../errors/conflict.error");
 
 const userData = {
   email: "test@test.com",
@@ -96,7 +97,7 @@ describe("Test user service", () => {
     try {
       await UserService.createUser(userData);
     } catch (e) {
-      expect(e instanceof ValidationError).toBe(true);
+      expect(e instanceof ConflictError).toBe(true);
     }
   });
 
@@ -116,14 +117,19 @@ describe("Test user service", () => {
     try {
       secondUser = await UserService.updateUser(secondUser.id, userData);
     } catch (e) {
-      expect(e instanceof ValidationError).toBe(true);
+      expect(e instanceof ConflictError).toBe(true);
     }
   });
 
   test("updates user with it's own email in database", async () => {
-    user = await UserService.updateUser(user.id, userData);
-    expect(user).toEqual(relevantObjectContaining);
-    expectUserData(user, userData);
+    try {
+      user = await UserService.updateUser(user.id, userData);
+      expect(user).toEqual(relevantObjectContaining);
+      expectUserData(user, userData);
+    } catch (e) {
+      console.dir(e, { depth: null });
+      throw e;
+    }
   });
 
   test("updates user in database with new email and password", async () => {
@@ -163,11 +169,16 @@ describe("Test user service", () => {
   });
 
   test("updates user password", async () => {
-    user = await UserService.updateUser(user.id, newUserData[5]);
-    expect(user).toEqual(relevantObjectContaining);
-    expectUserData(user, {
-      hash: getUserHash(user.email, newUserData[5].password_hash)
-    });
+    try {
+      user = await UserService.updateUser(user.id, newUserData[5]);
+      expect(user).toEqual(relevantObjectContaining);
+      expectUserData(user, {
+        hash: getUserHash(user.email, newUserData[5].password_hash)
+      });
+    } catch (e) {
+      console.dir(e, { depth: null });
+      throw e;
+    }
   });
 
   test("deletes user in database", async () => {

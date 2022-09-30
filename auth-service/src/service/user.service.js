@@ -1,37 +1,46 @@
-const { build, validate } = require("chain-validator-js");
 const UserDAO = require("../dao/user");
 const BlacklistedUserIdDAO = require("../dao/blacklisted-user-id");
 const getUserHash = require("./get-user-hash");
 const ValidationError = require("../errors/validation.error");
 const NotFoundError = require("../errors/not-found.error");
+const ConflictError = require("../errors/conflict.error");
 const BaseService = require("./base.service");
 const messenger = require("../rabbitmq/messenger");
+const Joi = require("joi");
+const sha256Schema = require("../joi/customs/is-sha256");
 
 class UserService extends BaseService {
+  getUserDtoValidationSchema(userEmail = undefined) {
+    return Joi.object({
+      email: Joi.string().trim().email(),
+      password_hash: sha256Schema.when("email", {
+        is: Joi.exist(),
+        then: Joi.required()
+      }),
+      is_admin: Joi.bool(),
+      first_name: Joi.string().trim().min(2).max(128),
+      last_name: Joi.string().trim().min(2).max(128)
+    });
+  }
+
   async createUser(userDto) {
-    const validationResult = await validate(
-      userDto,
-      build().schema({
-        email: build()
-          .isString()
-          .bail()
-          .trim()
-          .isEmail()
-          .not()
-          .custom(() => async (email) => {
-            return await UserDAO.isEmailRegistered(email);
-          })
-          .withMessage("email already registered"),
-        password_hash: build().isString().bail().trim().isHash("sha256"),
-        is_admin: build().optional().isBoolean(),
-        first_name: build().isString().bail().trim().isLength({ min: 2 }),
-        last_name: build().isString().bail().trim().isLength({ min: 2 })
-      })
-    );
+    const createUserDTOValidationSchema =
+      this.getUserDtoValidationSchema().fork(
+        ["email", "password_hash", "first_name", "last_name"],
+        (field) => field.required()
+      );
 
-    if (validationResult.failed) throw new ValidationError(validationResult);
+    let userData;
+    try {
+      userData = await createUserDTOValidationSchema.validateAsync(userDto, {
+        allowUnknown: false
+      });
+    } catch (e) {
+      throw new ValidationError(e);
+    }
 
-    const userData = { ...validationResult.validated };
+    if (await UserDAO.isEmailRegistered(userData.email))
+      throw new ConflictError("Email is already registered");
 
     userData.hash = getUserHash(userData.email, userData.password_hash);
 
@@ -46,65 +55,26 @@ class UserService extends BaseService {
   async updateUser(userId, userDto) {
     await this.validateId(userId);
 
+    let validated;
+    try {
+      validated = await this.getUserDtoValidationSchema().validateAsync(
+        userDto
+      );
+    } catch (e) {
+      throw new ValidationError(e);
+    }
+
     const user = await UserDAO.getUser(userId);
 
     if (user === undefined)
       throw new NotFoundError("User is not found", { id: userId });
 
-    const validationResult = await validate(
-      userDto,
-      build()
-        .if(
-          build().schema({
-            email: build()
-              .isString()
-              .custom(() => (email) => email !== user.email)
-          }),
-          {
-            ifTrue: build().schema({
-              email: build()
-                .isString()
-                .bail()
-                .isEmail()
-                .not()
-                .custom(() => async (email) => {
-                  return await UserDAO.isEmailRegisteredForAnotherUser(
-                    user.id,
-                    email
-                  );
-                })
-                .withMessage("email already registered"),
-              password_hash: build().isString().bail().trim().isHash("sha256")
-            })
-          }
-        )
-        .schema({
-          email: build().optional(),
-          password_hash: build()
-            .optional()
-            .isString()
-            .bail()
-            .trim()
-            .isHash("sha256"),
-          is_admin: build().optional().isBoolean(),
-          first_name: build()
-            .optional()
-            .isString()
-            .bail()
-            .trim()
-            .isLength({ min: 2 }),
-          last_name: build()
-            .optional()
-            .isString()
-            .bail()
-            .trim()
-            .isLength({ min: 2 })
-        })
-    );
-
-    if (validationResult.failed) throw new ValidationError(validationResult);
-
-    const { validated } = validationResult;
+    if (
+      validated.email !== undefined &&
+      validated.email !== user.email &&
+      (await UserDAO.isEmailRegistered(validated.email))
+    )
+      throw new ConflictError("Email is already registered");
 
     if (validated.password_hash !== undefined) {
       if (validated.email !== undefined)

@@ -6,11 +6,12 @@ const ValidationError = require("../errors/validation.error");
 const NotFoundError = require("../errors/not-found.error");
 const InternalServerError = require("../errors/internal.error");
 const jwt = require("jsonwebtoken");
-const { validate, build } = require("chain-validator-js");
 const getUserHash = require("./get-user-hash");
 const { v4: uuid } = require("uuid");
 const BaseService = require("./base.service");
 const AuthorizationError = require("../errors/authorization.error");
+const Joi = require("joi");
+const sha256Schema = require("../joi/customs/is-sha256");
 
 function getTokensPair(user) {
   if (user === undefined) throw new InternalServerError("User is undefined");
@@ -42,15 +43,18 @@ function getTokensPair(user) {
 
 class AuthService extends BaseService {
   async login({ email, password_hash }) {
-    const validationResult = await validate(
-      { email, password_hash },
-      build().schema({
-        email: build().isString().bail().isEmail(),
-        password_hash: build().isString().bail().isHash("sha256")
-      })
-    );
+    const dto = { email, password_hash };
 
-    if (validationResult.failed) throw new ValidationError(validationResult);
+    const validationResult = Joi.object({
+      email: Joi.string().trim().email(),
+      password_hash: sha256Schema
+    }).validate(dto);
+
+    if (validationResult.error)
+      throw new ValidationError(validationResult.error);
+
+    email = validationResult.value.email;
+    password_hash = validationResult.value.password_hash;
 
     const user = await UserDAO.getUserByHash(getUserHash(email, password_hash));
 
