@@ -7,7 +7,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from "@nestjs/common";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { User } from "../auth/decorators";
@@ -19,6 +20,7 @@ import {
 } from "../auth/guards";
 import { UserEntity } from "../typeorm/entities";
 import { UpdateUserDTO, UserDTO } from "./dto";
+import { InjectAuthUserIdInterceptor } from "./interceptors";
 import {
   CreateUserDTOValidationPipe,
   UpdateUserDTOValidationPipe
@@ -31,6 +33,8 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(InjectAuthUserIdInterceptor)
+  @ApiBody({ type: UpdateUserDTO })
   @Post("/register")
   async register(
     @Body(CreateUserDTOValidationPipe) dto: UserDTO

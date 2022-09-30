@@ -63,7 +63,6 @@ export class TestAuthUser {
   async registerInBlogService() {
     if (this.createdBlogUserData === undefined) {
       const blogUserData: UserDTO = {
-        authUserId: this.createdAuthUserData.id,
         firstName: "Test",
         lastName: "Test",
         sex: true

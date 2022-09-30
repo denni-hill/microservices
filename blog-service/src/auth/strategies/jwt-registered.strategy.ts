@@ -38,6 +38,6 @@ export class JwtRegisteredStrategy extends PassportStrategy(
         "This auth user is not registered in blog service"
       );
 
-    return { ...user, auth: payload };
+    return Object.assign(user, { auth: payload });
   }
 }

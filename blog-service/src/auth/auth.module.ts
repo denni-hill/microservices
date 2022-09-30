@@ -7,8 +7,7 @@ import { AuthHttpConfigService } from "./auth-http-config.service";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard, JwtAuthRegisteredGuard } from "./guards";
 import { IsAdminGuard } from "./guards/is-admin.guard";
-import { JwtStrategy } from "./strategy";
-import { JwtRegisteredStrategy } from "./strategy/jwt-registered.strategy";
+import { JwtStrategy, JwtRegisteredStrategy } from "./strategies";
 
 @Module({
   providers: [
