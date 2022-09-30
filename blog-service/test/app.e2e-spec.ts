@@ -10,6 +10,10 @@ import {
 } from "../src/typeorm/entities";
 import { BlogDTO } from "../src/blog/dto";
 import { PostDTO } from "../src/post/dto";
+import {
+  FastifyAdapter,
+  NestFastifyApplication
+} from "@nestjs/platform-fastify";
 
 process.env.TEST_APP_BASE_URL = "http://localhost:8085";
 
@@ -20,7 +24,9 @@ describe("App e2e", () => {
       imports: [AppModule]
     }).compile();
 
-    app = appModule.createNestApplication();
+    app = appModule.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter()
+    );
     await app.init();
     app.listen(8085);
   });
@@ -330,7 +336,7 @@ describe("App e2e", () => {
 
     test("get blog posts", async () => {
       await regularUser.httpClient
-        .get(`${process.env.TEST_APP_BASE_URL}/blogs/${blog.id}/posts/`)
+        .get(`${process.env.TEST_APP_BASE_URL}/blogs/${blog.id}/posts`)
         .expectStatus(200)
         .expectJsonMatch([
           {
