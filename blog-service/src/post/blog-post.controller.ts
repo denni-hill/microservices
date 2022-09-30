@@ -10,7 +10,7 @@ import {
   Patch,
   Delete
 } from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
+import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { IsAdminGuard, JwtAuthRegisteredGuard } from "../auth/guards";
 import { SetBlogIdParamKey, IsBlogAuthorGuard } from "../blog-author/guards";
 import { InjectAdditionalBlogPostDataInterceptor } from "../blog/interceptors";
@@ -21,6 +21,7 @@ import {
 } from "./joi/pipes";
 import { PostService } from "./post.service";
 
+@ApiTags("blog posts")
 @SetBlogIdParamKey("blogId")
 @Controller("/blogs/:blogId/posts")
 export class BlogPostController {

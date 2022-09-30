@@ -9,7 +9,7 @@ import {
   Post,
   UseGuards
 } from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
+import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { User } from "../auth/decorators";
 import { UserData } from "../auth/dto";
 import {
@@ -25,6 +25,7 @@ import {
 } from "./joi/pipes";
 import { UserService } from "./user.service";
 
+@ApiTags("users")
 @Controller("users")
 export class UserController {
   constructor(private userService: UserService) {}

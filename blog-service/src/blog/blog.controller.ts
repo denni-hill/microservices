@@ -8,11 +8,13 @@ import {
   Post,
   UseGuards
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthRegisteredGuard, IsAdminGuard } from "../auth/guards";
 import { BlogService } from "./blog.service";
 import { BlogDTO } from "./dto";
 import { CreateBlogDTOValidationPipe } from "./joi/pipes";
 
+@ApiTags("blogs")
 @Controller("blogs")
 export class BlogController {
   constructor(private blogService: BlogService) {}

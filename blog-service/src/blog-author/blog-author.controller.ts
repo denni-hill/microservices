@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors
 } from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
+import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { JwtAuthRegisteredGuard, IsAdminGuard } from "../auth/guards";
 import { BlogAuthorEntity } from "../typeorm/entities";
 import { BlogAuthorService } from "./blog-author.service";
@@ -18,6 +18,7 @@ import { SetBlogIdParamKey } from "./guards";
 import { InjectAdditionalBlogAuthorDataInterceptor } from "./interceptors";
 import { CreateBlogAuthorDTOValidationPipe } from "./joi/pipes";
 
+@ApiTags("blog authors")
 @Controller("blogs/:blogId/authors")
 export class BlogAuthorController {
   constructor(private blogAuthorService: BlogAuthorService) {}
