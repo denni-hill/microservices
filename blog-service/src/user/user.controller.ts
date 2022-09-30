@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards
 } from "@nestjs/common";
+import { ApiBody } from "@nestjs/swagger";
 import { User } from "../auth/decorators";
 import { UserData } from "../auth/dto";
 import {
@@ -16,7 +17,8 @@ import {
   JwtAuthGuard,
   JwtAuthRegisteredGuard
 } from "../auth/guards";
-import { UserDTO } from "./dto";
+import { UserEntity } from "../typeorm/entities";
+import { UpdateUserDTO, UserDTO } from "./dto";
 import {
   CreateUserDTOValidationPipe,
   UpdateUserDTOValidationPipe
@@ -29,22 +31,25 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/register")
-  async register(@Body(CreateUserDTOValidationPipe) dto: UserDTO) {
+  async register(
+    @Body(CreateUserDTOValidationPipe) dto: UserDTO
+  ): Promise<UserEntity> {
     return await this.userService.create(dto);
   }
 
   @UseGuards(JwtAuthRegisteredGuard)
   @Get("me")
-  async getMe(@User() user: UserData) {
+  async getMe(@User() user: UserData): Promise<UserEntity> {
     return await this.userService.get(user.id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard)
   @Patch("me")
+  @ApiBody({ type: UpdateUserDTO })
   async updateMe(
     @User() user: UserData,
     @Body(UpdateUserDTOValidationPipe) dto: UserDTO
-  ) {
+  ): Promise<UserEntity> {
     return await this.userService.update(user.id, dto);
   }
 
@@ -61,23 +66,24 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard, IsAdminGuard)
-  @Get(":id")
-  async findOne(@Param("id", ParseIntPipe) id: number) {
+  @Get(":userId")
+  async findOne(@Param("userId", ParseIntPipe) id: number) {
     return await this.userService.get(id);
   }
 
   @UseGuards(JwtAuthGuard, IsAdminGuard)
-  @Patch(":id")
+  @Patch(":userId")
+  @ApiBody({ type: UpdateUserDTO })
   async update(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("userId", ParseIntPipe) id: number,
     @Body(UpdateUserDTOValidationPipe) dto: UserDTO
   ) {
     return await this.userService.update(id, dto);
   }
 
   @UseGuards(JwtAuthGuard, IsAdminGuard)
-  @Delete(":id")
-  async delete(@Param("id", ParseIntPipe) id: number) {
+  @Delete(":userId")
+  async delete(@Param("userId", ParseIntPipe) id: number) {
     return await this.userService.delete(id);
   }
 }

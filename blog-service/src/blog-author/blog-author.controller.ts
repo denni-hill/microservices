@@ -9,10 +9,11 @@ import {
   UseGuards,
   UseInterceptors
 } from "@nestjs/common";
+import { ApiBody } from "@nestjs/swagger";
 import { JwtAuthRegisteredGuard, IsAdminGuard } from "../auth/guards";
 import { BlogAuthorEntity } from "../typeorm/entities";
 import { BlogAuthorService } from "./blog-author.service";
-import { TransformedBlogAuthorDTO } from "./dto";
+import { BlogAuthorDTO, TransformedBlogAuthorDTO } from "./dto";
 import { SetBlogIdParamKey } from "./guards";
 import { InjectAdditionalBlogAuthorDataInterceptor } from "./interceptors";
 import { CreateBlogAuthorDTOValidationPipe } from "./joi/pipes";
@@ -24,6 +25,7 @@ export class BlogAuthorController {
   @SetBlogIdParamKey("blogId")
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
   @UseInterceptors(InjectAdditionalBlogAuthorDataInterceptor)
+  @ApiBody({ type: BlogAuthorDTO })
   @Post()
   async createBlogAuthor(
     @Body(CreateBlogAuthorDTOValidationPipe) dto: TransformedBlogAuthorDTO

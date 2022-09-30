@@ -1,6 +1,7 @@
-export interface UserDTO {
+import { ApiProperty } from "@nestjs/swagger";
+import { UpdateUserDTO } from "./update-user.dto";
+
+export class UserDTO extends UpdateUserDTO {
+  @ApiProperty({ example: 1 })
   authUserId?: number;
-  firstName?: string;
-  lastName?: string;
-  sex?: boolean;
 }

@@ -23,29 +23,29 @@ export class BlogController {
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Patch(":id")
+  @Patch(":blogId")
   async updateBlog(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("blogId", ParseIntPipe) id: number,
     @Body() dto: BlogDTO
   ) {
     return await this.blogService.update(id, dto);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Delete(":id")
-  async softDeleteBlog(@Param("id", ParseIntPipe) id: number) {
+  @Delete(":blogId")
+  async softDeleteBlog(@Param("blogId", ParseIntPipe) id: number) {
     return await this.blogService.softDelete(id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Patch(":id/recover")
-  async recoverBlog(@Param("id", ParseIntPipe) id: number) {
+  @Patch(":blogId/recover")
+  async recoverBlog(@Param("blogId", ParseIntPipe) id: number) {
     return await this.blogService.recover(id);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Delete(":id/purge")
-  async deleteBlog(@Param("id", ParseIntPipe) id: number) {
+  @Delete(":blogId/purge")
+  async deleteBlog(@Param("blogId", ParseIntPipe) id: number) {
     return await this.blogService.delete(id);
   }
 }

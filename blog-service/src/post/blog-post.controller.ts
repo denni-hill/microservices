@@ -10,10 +10,11 @@ import {
   Patch,
   Delete
 } from "@nestjs/common";
+import { ApiBody } from "@nestjs/swagger";
 import { IsAdminGuard, JwtAuthRegisteredGuard } from "../auth/guards";
 import { SetBlogIdParamKey, IsBlogAuthorGuard } from "../blog-author/guards";
 import { InjectAdditionalBlogPostDataInterceptor } from "../blog/interceptors";
-import { TransformedPostDTO } from "./dto";
+import { PostDTO, TransformedPostDTO } from "./dto";
 import {
   CreatePostDTOValidationPipe,
   UpdatePostDTOValidationPipe
@@ -28,6 +29,7 @@ export class BlogPostController {
   @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
   @UseInterceptors(InjectAdditionalBlogPostDataInterceptor)
   @Post()
+  @ApiBody({ type: PostDTO })
   async createPost(
     @Body(CreatePostDTOValidationPipe) postDTO: TransformedPostDTO
   ) {
@@ -39,38 +41,39 @@ export class BlogPostController {
     return await this.postService.getBlogPosts(blogId);
   }
 
-  @Get(":id")
+  @Get(":postId")
   async getBlogPost(
     @Param("blogId", ParseIntPipe) blogId: number,
-    @Param("id", ParseIntPipe) postId: number
+    @Param("postId", ParseIntPipe) postId: number
   ) {
     return await this.postService.getBlogPost(blogId, postId);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
-  @Patch(":id")
+  @Patch(":postId")
+  @ApiBody({ type: PostDTO })
   async updatePost(
-    @Param("id", ParseIntPipe) postId: number,
+    @Param("postId", ParseIntPipe) postId: number,
     @Body(UpdatePostDTOValidationPipe) postDTO: TransformedPostDTO
   ) {
     return await this.postService.update(postId, postDTO);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
-  @Delete(":id")
-  async softDeletePost(@Param("id", ParseIntPipe) postId: number) {
+  @Delete(":postId")
+  async softDeletePost(@Param("postId", ParseIntPipe) postId: number) {
     return await this.postService.softDelete(postId);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsBlogAuthorGuard)
-  @Patch(":id/recover")
-  async restorePost(@Param("id", ParseIntPipe) postId: number) {
+  @Patch(":postId/recover")
+  async restorePost(@Param("postId", ParseIntPipe) postId: number) {
     return await this.postService.recover(postId);
   }
 
   @UseGuards(JwtAuthRegisteredGuard, IsAdminGuard)
-  @Delete(":id/purge")
-  async deletePost(@Param("id", ParseIntPipe) postId: number) {
+  @Delete(":postId/purge")
+  async deletePost(@Param("postId", ParseIntPipe) postId: number) {
     return await this.postService.delete(postId);
   }
 }
