@@ -2,7 +2,10 @@ const BaseError = require("./base.error");
 
 class AuthorizationError extends BaseError {
   getResponseBody() {
-    return this.message;
+    return {
+      statusCode: this.getStatusCode(),
+      message: this.message
+    };
   }
 
   getStatusCode() {

@@ -10,7 +10,10 @@ class ValidationError extends BaseError {
 
   getResponseBody() {
     if (this.result instanceof ValidationResult) {
-      return this.result.errors;
+      return {
+        statusCode: this.getStatusCode(),
+        message: this.result.errors
+      };
     } else return this.result;
   }
 

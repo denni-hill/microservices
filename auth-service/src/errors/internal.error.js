@@ -8,7 +8,10 @@ class InternalServerError extends BaseError {
   }
 
   getResponseBody() {
-    return "Internal Server Error";
+    return {
+      statusCode: this.getStatusCode(),
+      message: "Internal Server Error"
+    };
   }
 
   getStatusCode() {

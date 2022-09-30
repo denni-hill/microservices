@@ -8,7 +8,10 @@ class ForbiddenError extends BaseError {
   }
 
   getResponseBody() {
-    return this.message;
+    return {
+      statusCode: this.getStatusCode(),
+      message: this.message
+    };
   }
 
   getStatusCode() {

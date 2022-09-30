@@ -9,7 +9,10 @@ class NotFoundError extends BaseError {
   }
 
   getResponseBody() {
-    return this.params;
+    return {
+      statusCode: this.getStatusCode(),
+      message: this.message
+    };
   }
 
   getStatusCode() {
