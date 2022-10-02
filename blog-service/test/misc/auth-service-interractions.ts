@@ -50,12 +50,14 @@ export class TestAuthUser {
     this.createdAuthUserData = await this.pactumAuth
       .withJson(this.data)
       .post(`${process.env.AUTH_SERVICE_HOST}/users`)
+      .expectStatus(201)
       .returns("res.body");
   }
 
   async login() {
     this.tokensPair = await this.httpClient
       .withJson(this.data)
+      .expectStatus(200)
       .post(`${process.env.AUTH_SERVICE_HOST}/login`)
       .returns("res.body");
   }
@@ -91,6 +93,7 @@ export class TestAuthUser {
     await this.httpClient
       .withBody(this.tokensPair?.refreshToken)
       .withHeaders("content-type", "text/plain")
+      .expectStatus(200)
       .post(`${process.env.AUTH_SERVICE_HOST}/logout`);
   }
 
@@ -98,9 +101,11 @@ export class TestAuthUser {
     await this.deleteInBlogService();
     if (this.createdAuthUserData === undefined)
       throw new Error("user is not created");
-    await this.pactumAuth.delete(
-      `${process.env.AUTH_SERVICE_HOST}/users/${this.createdAuthUserData.id}`
-    );
+    await this.pactumAuth
+      .expectStatus(200)
+      .delete(
+        `${process.env.AUTH_SERVICE_HOST}/users/${this.createdAuthUserData.id}`
+      );
   }
 }
 
@@ -109,7 +114,7 @@ export class TestUsersManager {
 
   async createUser(isAdmin = false): Promise<TestAuthUser> {
     const authUserData: RegisterAuthUserDTO = {
-      email: `${crypto.randomBytes(20).toString("hex")}@test.test`,
+      email: `${crypto.randomBytes(20).toString("hex")}@google.com`,
       first_name: "Tests",
       last_name: "Test",
       is_admin: isAdmin,
